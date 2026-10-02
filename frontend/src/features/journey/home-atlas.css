@@ -324,8 +324,10 @@
 }
 .journey-home .atlas-callout {
   overflow: visible;
+  pointer-events: none;
 }
 .journey-home .destination-note {
+  pointer-events: auto;
   margin: 0;
   padding: 13px 17px 14px;
   min-height: 0;

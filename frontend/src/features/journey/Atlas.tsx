@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router";
 import { ArrowRight, Mountain } from "lucide-react";
 
@@ -94,7 +94,28 @@ export function Atlas() {
   const [cities, setCities] = useState<City[]>([]);
   const [active, setActive] = useState(PLACES[0]);
   const [failed, setFailed] = useState(false);
+  const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [noteX, noteY] = project(active.location);
+  /** Keep the preview available while crossing from its landmark to the card. */
+  function keepPreview(place?: Place) {
+    if (resetTimer.current !== null) clearTimeout(resetTimer.current);
+    resetTimer.current = null;
+    if (place) setActive(place);
+  }
+  /** Restore the initial destination when pointer or keyboard focus leaves. */
+  function restorePreview() {
+    keepPreview();
+    resetTimer.current = setTimeout(() => {
+      resetTimer.current = null;
+      setActive(PLACES[0]);
+    }, 150);
+  }
+  useEffect(
+    () => () => {
+      if (resetTimer.current !== null) clearTimeout(resetTimer.current);
+    },
+    [],
+  );
   useEffect(() => {
     const controller = new AbortController();
     fetch("assets/shaanxi-cities.geojson", { signal: controller.signal })
@@ -198,6 +219,13 @@ export function Atlas() {
                   data-city={p.city}
                   className={`landmark ${active.name === p.name ? "is-active" : ""}`}
                   transform={`translate(${x} ${y})`}
+                  onMouseEnter={() => keepPreview(p)}
+                  onMouseLeave={restorePreview}
+                  onFocus={() => keepPreview(p)}
+                  onBlur={(event) => {
+                    if (!event.currentTarget.contains(event.relatedTarget))
+                      restorePreview();
+                  }}
                 >
                   <foreignObject
                     x="-70"
@@ -210,17 +238,13 @@ export function Atlas() {
                       {p.slug ? (
                         <Link
                           to={`/scenic/${p.slug}`}
-                          onMouseEnter={() => setActive(p)}
-                          onFocus={() => setActive(p)}
                           aria-label={`进入${p.name}`}
                         >
                           <Landmark place={p} />
                         </Link>
                       ) : (
                         <button
-                          onMouseEnter={() => setActive(p)}
-                          onFocus={() => setActive(p)}
-                          onClick={() => setActive(p)}
+                          onClick={() => keepPreview(p)}
                           aria-label={`了解${p.name}`}
                         >
                           <Landmark place={p} />
@@ -237,6 +261,13 @@ export function Atlas() {
             y={noteY < 230 ? noteY + 40 : noteY - 168}
             width="235"
             height="145"
+            onMouseEnter={() => keepPreview()}
+            onMouseLeave={restorePreview}
+            onFocus={() => keepPreview()}
+            onBlur={(event) => {
+              if (!event.currentTarget.contains(event.relatedTarget))
+                restorePreview();
+            }}
           >
             <aside
               className="destination-note"
