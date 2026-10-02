@@ -1,5 +1,18 @@
 .env
+.env.*
+!.env.example
+.venv/
 __pycache__/
-*.pyc
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
 node_modules/
+frontend/dist/
 data/
+temp/
+*.egg-info/
+.coverage
+
+# 原始照片素材不进仓库，需标注来源或授权后再单独提交
+samples/*
+!samples/README.md

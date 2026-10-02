@@ -1,7 +1,7 @@
 """D 模块对外入口：analyze_report / review_resolution。只返回结果，不改库、不派单。"""
 from __future__ import annotations
 
-from typing import Optional
+from typing import List, Optional, Union
 
 from pydantic import ValidationError
 
@@ -42,13 +42,18 @@ def _normalize_report(d: dict) -> ReportAnalysis:
     return rep
 
 
-def analyze_report(image: ImageInput, spot: str = "", description: str = "",
-                   cfg: Optional[AIConfig] = None) -> AnalysisResult:
-    """分析游客上报照片。"""
+def _as_images(x: Union[ImageInput, List[ImageInput]]) -> List[ImageInput]:
+    return list(x) if isinstance(x, (list, tuple)) else [x]
+
+
+def analyze_report(image: Union[ImageInput, List[ImageInput]], spot: str = "",
+                   description: str = "", cfg: Optional[AIConfig] = None) -> AnalysisResult:
+    """分析游客上报照片（一张或多张）。"""
     cfg = cfg or load_config()
+    images = _as_images(image)
     try:
         data, ms = chat_json(cfg, prompts.SYSTEM_REPORT,
-                             prompts.report_user_text(spot, description), [image], "analyze_report")
+                             prompts.report_user_text(spot, description), images, "analyze_report")
         try:
             rep = _normalize_report(data)
         except (ValidationError, ValueError, TypeError):
@@ -59,13 +64,16 @@ def analyze_report(image: ImageInput, spot: str = "", description: str = "",
         return _fail(cfg, e)
 
 
-def review_resolution(before: ImageInput, after: ImageInput, spot: str = "", note: str = "",
+def review_resolution(before: Union[ImageInput, List[ImageInput]],
+                      after: Union[ImageInput, List[ImageInput]], spot: str = "", note: str = "",
                       cfg: Optional[AIConfig] = None) -> AnalysisResult:
-    """对比整改前后照片，给出人工验收建议。"""
+    """对比整改前后照片（各一张或多张），给出人工验收建议。"""
     cfg = cfg or load_config()
+    b, a = _as_images(before), _as_images(after)
     try:
         data, ms = chat_json(cfg, prompts.SYSTEM_REVIEW,
-                             prompts.review_user_text(spot, note), [before, after], "review_resolution")
+                             prompts.review_user_text(spot, note, len(b), len(a)),
+                             b + a, "review_resolution")
         try:
             data = dict(data)
             for k in ("visible_changes", "remaining_issues", "cannot_confirm"):

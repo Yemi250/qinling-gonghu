@@ -4,8 +4,8 @@ import json
 import httpx
 import pytest
 
-from app.ai import ImageInput, analyze_report, review_resolution
-from app.ai.config import AIConfig
+from backend.app.ai import ImageInput, analyze_report, review_resolution
+from backend.app.ai.config import AIConfig
 
 PNG = b"\x89PNG\r\n\x1a\n" + b"0" * 32
 
