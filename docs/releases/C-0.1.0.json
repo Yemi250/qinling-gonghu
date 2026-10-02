@@ -26,7 +26,8 @@
     "typescript_and_vite_build": "passed",
     "real_http_and_process_restart": "passed",
     "docker_runtime": "not verified: Docker unavailable",
-    "remote_ci": "not run: repository push denied"
+    "remote_ci": "See checks on PR #2 for current status"
   },
-  "remote_delivery": "GitHub rejected push with HTTP 403 for llamapw; no PR created"
+  "remote_delivery": "Pushed feat/backend after invitation acceptance; PR #2 open",
+  "pull_request": "https://github.com/Yemi250/qinling-gonghu/pull/2"
 }
