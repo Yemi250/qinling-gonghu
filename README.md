@@ -104,6 +104,6 @@ uv run ruff check backend scripts
 npm --prefix frontend run build
 ```
 
-浏览器验收先执行 `npm --prefix frontend exec -- playwright install chromium`，再运行 `npm --prefix frontend run test:e2e`。本机若已有 Chrome，可设置 `PLAYWRIGHT_CHROMIUM_EXECUTABLE` 为浏览器绝对路径。脚本启动独立随机端口与临时数据目录，不写入演示数据库，不使用真实 API Key；实际验证 AI 不可用时的保留材料和人工闭环，不伪造成功。截图写入忽略的 `data/browser-evidence/`。CI 自动运行并保存截图。
+浏览器验收先执行 `npm --prefix frontend exec -- playwright install chromium`，再运行 `npm --prefix frontend run test:e2e`。本机若已有 Chrome，可设置 `PLAYWRIGHT_CHROMIUM_EXECUTABLE` 为浏览器绝对路径。脚本启动独立随机端口与临时数据目录，不写入演示数据库，不使用真实 API Key；实际验证 AI 不可用时的保留材料和人工闭环，不伪造成功。截图写入忽略的 `data/browser-evidence/`。新增浏览器 CI 配置准备在 [浏览器 CI 建议](docs/浏览器CI建议.yml)，尚未启用：当前上传凭证不允许修改 workflow，仓库原有 CI 保持运行。
 
 依赖以 `uv.lock`、`frontend/package-lock.json` 锁定。TypeScript 固定 5.9.3，以满足 openapi-typescript 的 peer 约束；不要绕过锁文件自行升级。真实图像分析按 [D 契约](docs/AI_INTEGRATION.md) 接入并单独验收。单元测试中的 TestProvider 是明确标注的测试替身，不会在运行应用中加载。
