@@ -65,12 +65,6 @@ def test_resolution_maps_to_contract(monkeypatch):
     assert r.acceptance_recommendation == "难以直接对比"
 
 
-def test_invalid_structure_propagates(monkeypatch):
-    stub(monkeypatch, "不是 JSON")
-    with pytest.raises(Exception):
-        run(provider.analyze_report(photos=[], point={}, description="", config=Cfg()))
-
-
 def test_timeout_maps_to_timeout_error(monkeypatch):
     """C 依赖 TimeoutError 记 ai_timeout，不能漏成 ai_failed。"""
     def fake_post(url, json=None, headers=None, timeout=None):

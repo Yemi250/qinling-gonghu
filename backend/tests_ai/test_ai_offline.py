@@ -2,7 +2,6 @@
 import json
 
 import httpx
-import pytest
 
 from backend.app.ai import ImageInput, analyze_report, review_resolution
 from backend.app.ai.config import AIConfig
@@ -26,7 +25,8 @@ def stub(monkeypatch, content=None, exc=None, status=200):
 
 GOOD = json.dumps({"verdict": "ok", "category": "垃圾散落", "title": "步道旁垃圾散落",
                    "summary": "s", "visible_observations": ["地面有塑料瓶"],
-                   "suggested_action": "清运", "suggested_department": "保洁队"}, ensure_ascii=False)
+                   "suggested_action": "清运", "suggested_department": "保洁队"},
+                  ensure_ascii=False)
 
 
 def test_ok(monkeypatch, tmp_path):
@@ -55,7 +55,8 @@ def test_garbage_output_fails_not_fakes(monkeypatch, tmp_path):
 
 
 def test_bad_category_fails(monkeypatch, tmp_path):
-    stub(monkeypatch, json.dumps({"verdict": "ok", "category": "山火", "title": "t", "summary": "s"}))
+    bad = {"verdict": "ok", "category": "山火", "title": "t", "summary": "s"}
+    stub(monkeypatch, json.dumps(bad))
     assert analyze_report(ImageInput(data=PNG), cfg=cfg(tmp_path)).error_code == "invalid_output"
 
 

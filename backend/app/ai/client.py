@@ -4,9 +4,8 @@ from __future__ import annotations
 import base64
 import json
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import List, Tuple
 
 import httpx
 
@@ -39,7 +38,7 @@ def image_to_data_url(img: ImageInput, max_bytes: int) -> str:
         try:
             raw = Path(img.path).read_bytes()
         except OSError as e:
-            raise AIError("bad_image", f"图片读取失败：{e.__class__.__name__}")
+            raise AIError("bad_image", f"图片读取失败：{e.__class__.__name__}") from None
     if not raw or len(raw) > max_bytes:
         raise AIError("bad_image", "图片为空或超过大小限制")
     mime = _sniff_mime(raw)
@@ -65,15 +64,15 @@ def _extract_json(text: str) -> dict:
     try:
         obj = json.loads(t[start : end + 1])
     except json.JSONDecodeError:
-        raise AIError("invalid_output", "模型返回的 JSON 无法解析")
+        raise AIError("invalid_output", "模型返回的 JSON 无法解析") from None
     if not isinstance(obj, dict):
         raise AIError("invalid_output", "模型返回的 JSON 不是对象")
     return obj
 
 
 def chat_json(
-    cfg: AIConfig, system: str, user_text: str, images: List[ImageInput], op: str
-) -> Tuple[dict, int]:
+    cfg: AIConfig, system: str, user_text: str, images: list[ImageInput], op: str
+) -> tuple[dict, int]:
     """返回 (解析后的 dict, 耗时毫秒)。失败抛 AIError。"""
     if not cfg.api_key:
         raise AIError("auth", "未配置 AI_API_KEY")
@@ -108,7 +107,7 @@ def chat_json(
             msg = r.json()["choices"][0]["message"]["content"]
             data = _extract_json(msg if isinstance(msg, str) else json.dumps(msg))
             ms = int((time.monotonic() - t0) * 1000)
-            _log(cfg, {"ts": datetime.now(timezone.utc).isoformat(), "op": op,
+            _log(cfg, {"ts": datetime.now(UTC).isoformat(), "op": op,
                        "model": cfg.model, "ok": True, "latency_ms": ms,
                        "attempt": attempt + 1, "images": len(images)})
             return data, ms
@@ -123,6 +122,6 @@ def chat_json(
             if e.code in ("auth", "bad_image"):
                 break
     ms = int((time.monotonic() - t0) * 1000)
-    _log(cfg, {"ts": datetime.now(timezone.utc).isoformat(), "op": op, "model": cfg.model,
+    _log(cfg, {"ts": datetime.now(UTC).isoformat(), "op": op, "model": cfg.model,
                "ok": False, "latency_ms": ms, "error": last.code, "images": len(images)})
     raise last

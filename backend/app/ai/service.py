@@ -1,15 +1,19 @@
 """D 模块对外入口：analyze_report / review_resolution。只返回结果，不改库、不派单。"""
 from __future__ import annotations
 
-from typing import List, Optional, Union
-
 from pydantic import ValidationError
 
 from . import prompts
 from .client import AIError, chat_json
 from .config import AIConfig, load_config
-from .schemas import (AnalysisResult, AnalysisStatus, ImageInput,
-                      ReportAnalysis, ResolutionReview, Verdict)
+from .schemas import (
+    AnalysisResult,
+    AnalysisStatus,
+    ImageInput,
+    ReportAnalysis,
+    ResolutionReview,
+    Verdict,
+)
 
 _REVIEW_OK = {"recommend_accept", "recommend_reject", "need_human"}
 _LIST_FIELDS = ("visible_observations", "missing_info", "follow_up_questions", "caveats")
@@ -42,12 +46,12 @@ def _normalize_report(d: dict) -> ReportAnalysis:
     return rep
 
 
-def _as_images(x: Union[ImageInput, List[ImageInput]]) -> List[ImageInput]:
+def _as_images(x: ImageInput | list[ImageInput]) -> list[ImageInput]:
     return list(x) if isinstance(x, (list, tuple)) else [x]
 
 
-def analyze_report(image: Union[ImageInput, List[ImageInput]], spot: str = "",
-                   description: str = "", cfg: Optional[AIConfig] = None) -> AnalysisResult:
+def analyze_report(image: ImageInput | list[ImageInput], spot: str = "",
+                   description: str = "", cfg: AIConfig | None = None) -> AnalysisResult:
     """分析游客上报照片（一张或多张）。"""
     cfg = cfg or load_config()
     images = _as_images(image)
@@ -57,16 +61,16 @@ def analyze_report(image: Union[ImageInput, List[ImageInput]], spot: str = "",
         try:
             rep = _normalize_report(data)
         except (ValidationError, ValueError, TypeError):
-            raise AIError("invalid_output", "模型输出不符合约定结构")
+            raise AIError("invalid_output", "模型输出不符合约定结构") from None
         return AnalysisResult(status=AnalysisStatus.success, model=cfg.model,
                               latency_ms=ms, report=rep)
     except AIError as e:
         return _fail(cfg, e)
 
 
-def review_resolution(before: Union[ImageInput, List[ImageInput]],
-                      after: Union[ImageInput, List[ImageInput]], spot: str = "", note: str = "",
-                      cfg: Optional[AIConfig] = None) -> AnalysisResult:
+def review_resolution(before: ImageInput | list[ImageInput],
+                      after: ImageInput | list[ImageInput], spot: str = "", note: str = "",
+                      cfg: AIConfig | None = None) -> AnalysisResult:
     """对比整改前后照片（各一张或多张），给出人工验收建议。"""
     cfg = cfg or load_config()
     b, a = _as_images(before), _as_images(after)
@@ -82,7 +86,7 @@ def review_resolution(before: Union[ImageInput, List[ImageInput]],
             if rv.suggestion not in _REVIEW_OK:
                 raise ValueError("bad suggestion")
         except (ValidationError, ValueError, TypeError):
-            raise AIError("invalid_output", "模型输出不符合约定结构")
+            raise AIError("invalid_output", "模型输出不符合约定结构") from None
         return AnalysisResult(status=AnalysisStatus.success, model=cfg.model,
                               latency_ms=ms, review=rv)
     except AIError as e:
