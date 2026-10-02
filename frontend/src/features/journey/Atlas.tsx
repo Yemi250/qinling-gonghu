@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
-import { ArrowUpRight, Mountain, Compass } from "lucide-react";
+import { ArrowRight, Mountain } from "lucide-react";
 
 type City = {
   properties: { name: string; center: number[] };
@@ -62,7 +62,14 @@ const PLACES: Place[] = [
 ];
 /** Project real municipal geometry into a compact illustrated atlas. */
 function project(p: number[]): number[] {
-  return [(p[0] - 105.45) * 100 + 60, (39.65 - p[1]) * 90 + 20];
+  return [
+    ((p[0] - 105.45) * 100 + 60) * 1.6 + 50,
+    ((39.65 - p[1]) * 90 + 20) * 0.91 + 40,
+  ];
+}
+/** Join municipal paths to draw the province's raised paper-and-clay foundation. */
+function provincePath(cities: City[]): string {
+  return cities.map(cityPath).join(" ");
 }
 function cityPath(city: City): string {
   const polygons =
@@ -87,6 +94,7 @@ export function Atlas() {
   const [cities, setCities] = useState<City[]>([]);
   const [active, setActive] = useState(PLACES[0]);
   const [failed, setFailed] = useState(false);
+  const [noteX, noteY] = project(active.location);
   useEffect(() => {
     const controller = new AbortController();
     fetch("assets/shaanxi-cities.geojson", { signal: controller.signal })
@@ -103,12 +111,12 @@ export function Atlas() {
   return (
     <div className="atlas-layout">
       <div className="atlas-stage">
-        <span className="atlas-north">
-          N <span>↑</span>
+        <span className="atlas-north" aria-label="北方">
+          北 <span>▲</span>
         </span>
         <svg
           className="atlas-map"
-          viewBox="0 0 660 780"
+          viewBox="0 0 1160 790"
           aria-label="陕西十市漫游地图"
         >
           <defs>
@@ -118,27 +126,31 @@ export function Atlas() {
               ))}
             </clipPath>
           </defs>
-          <g className="map-foundation" transform="translate(0 12)">
-            {cities.map((c) => (
-              <path key={c.properties.name} d={cityPath(c)} />
-            ))}
-          </g>
+          {[26, 6].map((depth, i) => (
+            <g
+              className={`map-foundation map-foundation--${i}`}
+              key={depth}
+              transform={`translate(0 ${depth})`}
+            >
+              <path d={provincePath(cities)} />
+            </g>
+          ))}
           <g clipPath="url(#province)">
             <image
-              href="assets/terrain.png"
-              x="40"
-              y="12"
-              width="575"
-              height="750"
+              href="assets/atlas-terrain-v2.png"
+              x="130"
+              y="48"
+              width="960"
+              height="680"
               preserveAspectRatio="xMidYMid slice"
             />
             <rect
               x="0"
               y="0"
-              width="660"
-              height="780"
+              width="1160"
+              height="790"
               fill="#f6eee0"
-              opacity=".14"
+              opacity=".04"
             />
           </g>
           <g className="city-boundaries">
@@ -161,84 +173,98 @@ export function Atlas() {
             .map((c) => {
               const [x, y] = project(c.properties.center);
               return (
-                <text
-                  className="city-label"
-                  key={c.properties.name}
-                  x={x}
-                  y={y}
-                >
-                  {c.properties.name.replace("市", "")}
-                </text>
+                <g key={c.properties.name} transform={`translate(${x} ${y})`}>
+                  <rect
+                    className="city-label-paper"
+                    x="-33"
+                    y="-19"
+                    width="66"
+                    height="29"
+                    rx="7"
+                  />
+                  <text className="city-label" x="0" y="2">
+                    {c.properties.name.replace("市", "")}
+                  </text>
+                </g>
               );
             })}
-          {PLACES.map((p) => {
-            const [x, y] = project(p.location);
-            return (
-              <g
-                key={p.name}
-                className={`landmark ${active.name === p.name ? "is-active" : ""}`}
-                transform={`translate(${x} ${y})`}
-              >
-                <foreignObject x="-47" y="-103" width="94" height="151">
-                  <div className="landmark-inner">
-                    {p.slug ? (
-                      <Link
-                        to={`/scenic/${p.slug}`}
-                        onMouseEnter={() => setActive(p)}
-                        onFocus={() => setActive(p)}
-                        aria-label={`进入${p.name}`}
-                      >
-                        <Landmark place={p} />
-                      </Link>
-                    ) : (
-                      <button
-                        onMouseEnter={() => setActive(p)}
-                        onFocus={() => setActive(p)}
-                        onClick={() => setActive(p)}
-                        aria-label={`了解${p.name}`}
-                      >
-                        <Landmark place={p} />
-                      </button>
-                    )}
-                  </div>
-                </foreignObject>
-              </g>
-            );
-          })}
+          {[...PLACES]
+            .sort((a, b) => b.location[1] - a.location[1])
+            .map((p) => {
+              const [x, y] = project(p.location);
+              return (
+                <g
+                  key={p.name}
+                  data-city={p.city}
+                  className={`landmark ${active.name === p.name ? "is-active" : ""}`}
+                  transform={`translate(${x} ${y})`}
+                >
+                  <foreignObject
+                    x="-70"
+                    y="-188"
+                    width="140"
+                    height="245"
+                    className="landmark-window"
+                  >
+                    <div className="landmark-inner">
+                      {p.slug ? (
+                        <Link
+                          to={`/scenic/${p.slug}`}
+                          onMouseEnter={() => setActive(p)}
+                          onFocus={() => setActive(p)}
+                          aria-label={`进入${p.name}`}
+                        >
+                          <Landmark place={p} />
+                        </Link>
+                      ) : (
+                        <button
+                          onMouseEnter={() => setActive(p)}
+                          onFocus={() => setActive(p)}
+                          onClick={() => setActive(p)}
+                          aria-label={`了解${p.name}`}
+                        >
+                          <Landmark place={p} />
+                        </button>
+                      )}
+                    </div>
+                  </foreignObject>
+                </g>
+              );
+            })}
+          <foreignObject
+            className="atlas-callout"
+            x={Math.min(noteX + 53, 915)}
+            y={noteY < 230 ? noteY + 40 : noteY - 168}
+            width="235"
+            height="145"
+          >
+            <aside
+              className="destination-note"
+              key={active.name}
+              aria-label={`${active.name}目的地`}
+            >
+              <h2>{active.name}</h2>
+              {active.slug ? (
+                <Link to={`/scenic/${active.slug}`}>
+                  走进这处风景 <ArrowRight size={19} />
+                </Link>
+              ) : (
+                <>
+                  <p>{active.description}</p>
+                  <span className="planned-label">互动篇章 · 筹备中</span>
+                </>
+              )}
+            </aside>
+          </foreignObject>
         </svg>
-        {failed && <p role="alert">地图暂时未加载，可从右侧进入景区。</p>}
-        <span className="atlas-caption">一幅山河，许多种相遇。</span>
-      </div>
-      <aside className="destination-note" key={active.name}>
-        <span className="eyebrow">
-          <Compass size={14} /> 漫游下一站
-        </span>
-        <span className="note-city">{active.city} / SHAANXI</span>
-        <h2>{active.name}</h2>
-        <p>{active.description}</p>
-        {active.slug ? (
-          <Link className="ink-link" to={`/scenic/${active.slug}`}>
-            走进这一程 <ArrowUpRight size={18} />
-          </Link>
-        ) : (
-          <span className="planned-label">互动篇章 · 筹备中</span>
+        {failed && (
+          <div className="atlas-load-error" role="alert">
+            <p>地图暂时未加载，仍可直接开启景区篇章。</p>
+            <Link to="/scenic/terracotta">兵马俑 ↗</Link>
+            <Link to="/scenic/taibai">太白山 ↗</Link>
+          </div>
         )}
-        <div className="note-divider" />
-        <p className="note-small">
-          遇见风景，留下记忆。
-          <br />
-          发现需要照看的地方，
-          <br />
-          也可以顺手帮一把。
-        </p>
-        <Link
-          className="map-secondary"
-          to={`/scenic/${active.slug === "taibai" ? "terracotta" : "taibai"}`}
-        >
-          {active.slug === "taibai" ? "也去看看兵马俑" : "也去看看太白山"}{" "}
-          <ArrowUpRight size={14} />
-        </Link>
-      </aside>
+      </div>
     </div>
   );
 }
@@ -267,8 +293,8 @@ function Landmark({ place: p }: { place: Place }) {
       </span>
       <span className="landmark-pin" />
       <span className="landmark-name">
-        {p.name}
-        <small>{p.city}</small>
+        <i aria-hidden="true" />
+        {p.city}
       </span>
     </>
   );

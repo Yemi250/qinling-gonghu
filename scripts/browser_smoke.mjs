@@ -80,8 +80,36 @@ try {
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto(origin, { waitUntil: "networkidle" });
   assert.equal(await page.locator(".city-boundaries path").count(), 10);
+  assert.equal(await page.getByText("SHAANXI, AT YOUR OWN PACE").count(), 0);
+  assert.equal(await page.getByText("一幅山河，许多种相遇。").count(), 0);
+  await page.getByRole("heading", { name: "从一处风景开始" }).waitFor();
+  const mapWidth = await page
+    .locator(".city-boundaries")
+    .evaluate((node) => node.getBoundingClientRect().width);
+  assert.ok(mapWidth > 1440 * 0.6, "The map must occupy the main visual field");
+  await page.getByRole("button", { name: "寻找一处风景" }).click();
+  await page.getByRole("searchbox", { name: "景区名称" }).fill("太白山");
+  assert.equal(
+    await page
+      .getByRole("region", { name: "寻找风景" })
+      .getByRole("link")
+      .count(),
+    1,
+  );
+  await page.keyboard.press("Escape");
   const hotspot = page.getByRole("link", { name: "进入兵马俑" });
   await hotspot.hover();
+  assert.ok(
+    await page.locator('.landmark[data-city="西安"] img').evaluate((img) => {
+      const box = img.getBoundingClientRect();
+      const hit = document.elementFromPoint(
+        box.x + box.width / 2,
+        box.y + box.height * 0.2,
+      );
+      return hit?.closest("a")?.getAttribute("aria-label") === "进入兵马俑";
+    }),
+    "The warrior head must be visible and clickable, without another city label covering it",
+  );
   await page.screenshot({
     path: join(evidence, "01-atlas.png"),
     fullPage: true,

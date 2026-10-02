@@ -8,22 +8,46 @@ import {
   Feather,
   Heart,
   MapPin,
+  Search,
+  UserRound,
+  X,
 } from "lucide-react";
 import { Atlas } from "./Atlas";
 import { Notebook } from "./Notebook";
 import { SCENES, readReceipts, dateLabel } from "./scenes";
-import { api, type Overview } from "../../api/client";
 import "./journey.css";
+import "./home-atlas.css";
 
 /** A quiet navigation layer shared by the atlas and themed scenic chapters. */
-export function JourneyHeader() {
+export function JourneyHeader({ immersive = false }: { immersive?: boolean }) {
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [search, setSearch] = useState("");
   return (
     <header className="journey-header">
       <Link className="journey-brand" to="/">
-        <span className="brand-seal">共</span>
-        <span>
-          秦岭共护<small>山河漫游 · 一起照看</small>
-        </span>
+        <svg
+          className="brand-mountains"
+          viewBox="0 0 100 42"
+          aria-hidden="true"
+        >
+          <path
+            d="M3 34 17 28 29 16 37 22 49 7 58 13 65 23 74 17 88 29 98 34 75 33 61 28 48 32 32 30 16 35Z"
+            fill="currentColor"
+          />
+          <path
+            d="m19 29 10-9 6 6 14-14 7 5 7 12-13-8-10 10-10-4-11 5m44-1 11-8 9 10-10-5-6 5"
+            fill="#f7f2e6"
+            opacity=".85"
+          />
+          <path
+            d="M4 37q15-5 25-3t24-1q21-4 43 4"
+            stroke="currentColor"
+            strokeWidth="1"
+            fill="none"
+            opacity=".6"
+          />
+        </svg>
+        <span>秦岭共护</span>
       </Link>
       <nav aria-label="主导航">
         <NavLink to="/" end>
@@ -32,7 +56,68 @@ export function JourneyHeader() {
         <NavLink to="/scenic/taibai">秦岭专栏</NavLink>
         <NavLink to="/footprints">我的足迹</NavLink>
       </nav>
-      <span className="header-edition">牛来 / 山河共护计划</span>
+      {immersive ? (
+        <div className="header-tools">
+          <button
+            aria-label="寻找一处风景"
+            aria-expanded={searchOpen}
+            onClick={() => setSearchOpen(!searchOpen)}
+          >
+            <Search size={23} strokeWidth={1.6} />
+          </button>
+          <span className="header-tools-rule" />
+          <Link to="/footprints" aria-label="查看我的足迹">
+            <UserRound size={23} strokeWidth={1.6} />
+          </Link>
+        </div>
+      ) : (
+        <span className="header-edition">牛来 / 山河共护计划</span>
+      )}
+      {searchOpen && (
+        <section
+          className="destination-search"
+          aria-label="寻找风景"
+          onKeyDown={(e) => {
+            if (e.key === "Escape") setSearchOpen(false);
+          }}
+        >
+          <div>
+            <label className="visually-hidden" htmlFor="destination-search">
+              景区名称
+            </label>
+            <input
+              autoFocus
+              id="destination-search"
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="寻找一处风景"
+            />
+            <button
+              aria-label="关闭风景搜索"
+              onClick={() => setSearchOpen(false)}
+            >
+              <X size={18} />
+            </button>
+          </div>
+          {Object.values(SCENES)
+            .filter((s) => (s.name + s.city).includes(search.trim()))
+            .map((s) => (
+              <Link
+                to={`/scenic/${s.slug}`}
+                key={s.slug}
+                onClick={() => setSearchOpen(false)}
+              >
+                {s.name}
+                <small>{s.city} · 体验篇章</small>
+                <ArrowUpRight size={16} />
+              </Link>
+            ))}
+          {!Object.values(SCENES).some((s) =>
+            (s.name + s.city).includes(search.trim()),
+          ) && <p>这个目的地还在筹备中，先去兵马俑或太白山走走吧。</p>}
+        </section>
+      )}
     </header>
   );
 }
@@ -48,50 +133,26 @@ export function JourneyFooter() {
 }
 /** Start with geography and destination exploration, rather than a dashboard. */
 export function JourneyHome() {
-  const [overview, setOverview] = useState<Overview>();
-  useEffect(() => {
-    let live = true;
-    api
-      .overview()
-      .then((v) => {
-        if (live) setOverview(v);
-      })
-      .catch(() => {});
-    return () => {
-      live = false;
-    };
-  }, []);
   return (
-    <div className="journey-page">
-      <JourneyHeader />
-      <main className="atlas-main">
-        <div className="atlas-heading">
-          <span className="eyebrow">SHAANXI, AT YOUR OWN PACE</span>
-          <h1>
-            山河有回响，
-            <br />
-            <em>等你来一趟。</em>
-          </h1>
-          <p>
-            从黄土的厚重，到秦岭的清朗。
-            <br />
-            点亮一个地标，开启你的陕西漫游。
-          </p>
-        </div>
-        <Atlas />
-        <div className="atlas-bottom">
-          <span>
-            <span className="small-dot" /> 已开放 2 个体验篇章
-          </span>
-          <span>美景收藏 / 环境共护</span>
-          <span>
-            {overview
-              ? `演示线索 ${overview.demo_count} 条 · 结案 ${overview.closed_count} 条`
-              : "轻触地标，走进风景"}
-          </span>
-        </div>
-      </main>
-      <JourneyFooter />
+    <div className="journey-page journey-home">
+      <div className="journey-canvas">
+        <JourneyHeader immersive />
+        <main className="atlas-main">
+          <div className="atlas-heading">
+            <h1>从一处风景开始</h1>
+            <p>
+              行走三秦大地，
+              <br />
+              在山河之间，遇见历史，也遇见更好的未来。
+            </p>
+          </div>
+          <Atlas />
+          <span className="atlas-proportion">山河示意 · 非实际比例</span>
+          <Link className="home-workbench" to="/workbench">
+            景区工作台 ↗
+          </Link>
+        </main>
+      </div>
     </div>
   );
 }

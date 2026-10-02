@@ -1,0 +1,575 @@
+/* The approved reference is an immersive ink landscape with a large raised atlas. */
+.brand-mountains {
+  width: 74px;
+  height: 36px;
+  flex-shrink: 0;
+  color: #726557;
+}
+.journey-brand {
+  font-size: 23px;
+  font-weight: 650;
+  gap: 10px;
+  letter-spacing: 0.075em;
+}
+.journey-home {
+  padding: 12px;
+  height: 100svh;
+  min-height: 660px;
+  background: #afa18d;
+}
+.journey-canvas {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #f9f3e0;
+  border-radius: 13px;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px #7f71582c;
+  background: #efe6d4;
+}
+.journey-home .journey-header {
+  margin: 0;
+  height: 70px;
+  min-height: 70px;
+  padding: 0 32px;
+  background: #fbf7ece6;
+  border-bottom: 1px solid #f9f5eab0;
+  position: relative;
+  z-index: 10;
+  gap: 20px;
+}
+.journey-home .journey-header nav {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  gap: clamp(35px, 5vw, 85px);
+  font-family: "Noto Serif SC Variable", serif;
+  font-size: 17px;
+  font-weight: 600;
+  color: #554b3c;
+}
+.journey-home .journey-header nav a {
+  padding: 21px 0 23px;
+}
+.journey-home .journey-header nav .active:after {
+  bottom: 0;
+  left: 17%;
+  width: 66%;
+  height: 3px;
+  background: #b9865b;
+  border-radius: 0;
+}
+.header-tools {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-left: auto;
+  color: #665b4b;
+}
+.header-tools button,
+.header-tools a {
+  background: none;
+  border: 0;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.header-tools a {
+  border: 1px solid #b7a78c;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+}
+.header-tools-rule {
+  height: 27px;
+  border-left: 1px solid #d4c9b5;
+}
+.destination-search {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 20px;
+  width: 320px;
+  padding: 18px;
+  background: #faf6ed;
+  border: 1px solid #cbbc9f;
+  box-shadow: 0 12px 35px #4e3c2326;
+  border-radius: 6px;
+}
+.destination-search > div {
+  display: flex;
+  gap: 12px;
+  border-bottom: 1px solid #cbbd9f;
+  margin-bottom: 12px;
+}
+.destination-search input {
+  width: 100%;
+  background: none;
+  border: 0;
+  outline: none;
+  font-size: 13px;
+  padding: 10px 0;
+  color: #6a5940;
+}
+.destination-search button {
+  background: none;
+  border: 0;
+  color: #99866a;
+}
+.destination-search > a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  padding: 13px 0;
+  border-bottom: 1px solid #ece4d7;
+}
+.destination-search small {
+  font-size: 10px;
+  color: #a08c6d;
+  margin-left: auto;
+  margin-right: 12px;
+}
+.destination-search p {
+  font-size: 12px;
+  line-height: 1.9;
+  color: #9b886a;
+  padding: 12px 0;
+}
+.journey-home .atlas-main {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  max-width: none;
+  padding: 0;
+  margin: 0;
+  position: relative;
+  background: #efe6d4 url("../../../public/assets/ink-background-v2.png") center
+    center / cover no-repeat;
+}
+.journey-home .atlas-heading {
+  position: absolute;
+  top: 9%;
+  left: 3.2%;
+  z-index: 3;
+  margin: 0;
+  max-width: 47%;
+  pointer-events: none;
+}
+.journey-home .atlas-heading h1 {
+  margin: 0 0 15px;
+  font-size: clamp(30px, 3.5vw, 52px);
+  line-height: 1.45;
+  font-weight: 650;
+  letter-spacing: 0.075em;
+  white-space: nowrap;
+  color: #352b20;
+  text-shadow: 0 1px 6px #f5ebd9aa;
+}
+.journey-home .atlas-heading p {
+  display: block;
+  font-family: "Noto Serif SC Variable", serif;
+  font-weight: 500;
+  font-size: clamp(12px, 1.36vw, 19px);
+  line-height: 1.7;
+  letter-spacing: 0.025em;
+  color: #73634e;
+  text-shadow: 0 1px 7px #f5ebd9;
+}
+.journey-home .atlas-layout {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+.journey-home .atlas-stage {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  background: none;
+}
+.journey-home .atlas-map {
+  display: block;
+  position: absolute;
+  left: -6%;
+  top: -8%;
+  width: 112%;
+  height: 112%;
+  max-width: none;
+  margin: 0;
+  overflow: visible;
+  filter: drop-shadow(10px 20px 10px #59402640);
+  animation: atlas-enter 1s ease-out both;
+}
+.journey-home .map-foundation path {
+  stroke: #ac8e60;
+  stroke-width: 1.3;
+  fill: #b1966f;
+}
+.journey-home .map-foundation--0 path {
+  fill: #9b805b;
+}
+.journey-home .map-foundation--1 path {
+  fill: #cab891;
+  stroke: #c0ab83;
+}
+.journey-home .map-foundation--2 path {
+  fill: #bfaa84;
+}
+.journey-home .map-foundation--3 path {
+  fill: #c9b593;
+}
+.journey-home .map-foundation--4 path {
+  fill: #d5c29e;
+}
+.journey-home .city-boundaries path {
+  stroke: #f8e8c9;
+  stroke-width: 2;
+  stroke-dasharray: none;
+  opacity: 0.85;
+}
+.journey-home .city-label-paper {
+  fill: #f8f0df;
+  fill-opacity: 0.92;
+  stroke: #d4c7ac;
+  stroke-width: 1;
+}
+.journey-home .city-label {
+  fill: #5d4d38;
+  font-size: 16px;
+  font-family: "Noto Serif SC Variable", serif;
+  font-weight: 600;
+  stroke: none;
+  letter-spacing: 2px;
+}
+.journey-home .atlas-north {
+  top: 5%;
+  right: 3%;
+  left: auto;
+  bottom: auto;
+  z-index: 3;
+  font-family: serif;
+  font-size: 12px;
+  color: #8d806b;
+  gap: 3px;
+}
+.journey-home .atlas-north span {
+  font-size: 22px;
+}
+.journey-home .landmark-window {
+  overflow: visible;
+}
+.journey-home .landmark[data-city="延安"] .landmark-name {
+  transform: translateX(68px);
+}
+.journey-home .landmark-inner {
+  padding-top: 26px;
+  overflow: visible;
+}
+.journey-home .landmark-inner a,
+.journey-home .landmark-inner button {
+  height: 220px;
+  justify-content: flex-end;
+  overflow: visible;
+}
+.journey-home .landmark-art {
+  width: 108px;
+  height: 147px;
+  min-height: 147px;
+  flex-shrink: 0;
+}
+.journey-home .landmark-art img {
+  width: 114px;
+  height: 168px;
+  max-width: none;
+  object-fit: contain;
+  object-position: center bottom;
+}
+.journey-home .landmark-art svg {
+  width: 79px;
+  height: 83px;
+  max-width: 79px;
+  max-height: 83px;
+}
+.journey-home .landmark-art--flower {
+  font-size: 83px;
+}
+.journey-home .landmark-pin {
+  display: none;
+}
+.journey-home .landmark-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 21px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 2px;
+  padding: 3px 10px;
+  background: #fbf3e3ee;
+  border: 1px solid #dbcab0;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px #4a3d1d12;
+}
+.journey-home .landmark-name i {
+  height: 10px;
+  width: 10px;
+  background: #3c3529;
+  border: 2px solid #fff4e4;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.journey-home .atlas-callout {
+  overflow: visible;
+}
+.journey-home .destination-note {
+  margin: 0;
+  padding: 13px 17px 14px;
+  min-height: 0;
+  width: 218px;
+  display: block;
+  background: #fcf8ee;
+  border: 1px solid #ddd2ba;
+  border-radius: 7px;
+  box-shadow: 3px 8px 16px #6b4c2d19;
+  transform: none;
+  animation: note-enter 0.2s both;
+  position: relative;
+}
+.journey-home .destination-note:before {
+  content: "";
+  position: absolute;
+  left: -7px;
+  top: 29px;
+  width: 13px;
+  height: 13px;
+  background: #fcf8ee;
+  border-bottom: 1px solid #ddd2ba;
+  border-left: 1px solid #ddd2ba;
+  transform: rotate(45deg);
+}
+.journey-home .destination-note h2 {
+  font-size: 24px;
+  font-weight: 650;
+  line-height: 1.4;
+  margin: 0 0 5px;
+  letter-spacing: 0.07em;
+}
+.journey-home .destination-note > a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: #75674f;
+  font-size: 16px;
+  line-height: 1.6;
+}
+.journey-home .destination-note p {
+  color: #8d7d61;
+  font-size: 12px;
+  line-height: 1.65;
+  margin: 2px 0 7px;
+}
+.journey-home .destination-note .planned-label {
+  font-size: 11px;
+  color: #ac9270;
+}
+.atlas-proportion {
+  position: absolute;
+  right: 2.5%;
+  bottom: 18px;
+  font-family: "Noto Serif SC Variable", serif;
+  font-size: 13px;
+  color: #948670;
+  letter-spacing: 0.08em;
+}
+.home-workbench {
+  position: absolute;
+  left: 25px;
+  bottom: 18px;
+  padding: 6px 10px;
+  background: #f9f3e4ab;
+  font-size: 10px;
+  color: #8e7b60 !important;
+  border-radius: 3px;
+}
+.atlas-load-error {
+  position: absolute;
+  top: 50%;
+  left: 35%;
+  padding: 24px;
+  font-size: 13px;
+  background: #fcf7e9;
+  border: 1px solid #d3c5a9;
+  color: #8c7353;
+}
+.atlas-load-error a {
+  display: inline-block;
+  margin: 15px 15px 0 0;
+  border-bottom: 1px solid #a48d6d;
+}
+@media (min-aspect-ratio: 17/10) and (min-width: 900px) {
+  .journey-home .atlas-map {
+    width: 100%;
+    margin-left: 0;
+    left: 0;
+    scale: 1.16 1;
+    transform-origin: 70% center;
+  }
+  .journey-home .atlas-heading {
+    top: 10%;
+  }
+}
+@media (max-width: 900px) {
+  .journey-home {
+    padding: 8px;
+    min-height: 680px;
+  }
+  .journey-home .journey-header {
+    padding: 0 20px;
+    height: 66px;
+    min-height: 66px;
+  }
+  .journey-home .journey-brand {
+    font-size: 19px;
+  }
+  .brand-mountains {
+    width: 60px;
+    height: 30px;
+  }
+  .journey-home .journey-header nav {
+    font-size: 14px;
+    gap: 26px;
+  }
+  .header-tools {
+    gap: 12px;
+  }
+  .header-tools-rule {
+    display: none;
+  }
+  .journey-home .atlas-heading h1 {
+    font-size: 32px;
+  }
+  .journey-home .atlas-heading p {
+    font-size: 13px;
+  }
+}
+@media (max-width: 700px) {
+  .journey-home {
+    height: 100svh;
+    min-height: 730px;
+    padding: 6px;
+  }
+  .journey-canvas {
+    border-radius: 9px;
+  }
+  .journey-home .journey-header {
+    height: 104px;
+    min-height: 104px;
+    padding: 12px 18px 0;
+    align-items: flex-start;
+    align-content: space-between;
+    flex-wrap: wrap;
+    gap: 0;
+  }
+  .journey-home .journey-brand {
+    font-size: 21px;
+    margin-top: 1px;
+    order: 1;
+  }
+  .journey-home .brand-mountains {
+    width: 63px;
+    height: 31px;
+  }
+  .header-tools {
+    margin-top: 2px;
+    gap: 13px;
+    order: 2;
+  }
+  .header-tools a {
+    width: 29px;
+    height: 29px;
+  }
+  .journey-home .journey-header nav {
+    width: 100%;
+    left: auto;
+    transform: none;
+    position: relative;
+    justify-content: center;
+    gap: 35px;
+    font-size: 14px;
+    font-weight: 550;
+    order: 3;
+  }
+  .journey-home .journey-header nav a {
+    padding: 10px 0 12px;
+  }
+  .journey-home .atlas-heading {
+    left: 6%;
+    top: 5%;
+    max-width: 91%;
+  }
+  .journey-home .atlas-heading h1 {
+    font-size: 30px;
+    margin: 0 0 11px;
+    letter-spacing: 0.05em;
+  }
+  .journey-home .atlas-heading p {
+    font-size: 12px;
+    line-height: 1.8;
+    max-width: 310px;
+  }
+  .journey-home .atlas-main {
+    background-position: 28% center;
+  }
+  .journey-home .atlas-map {
+    position: absolute;
+    top: 21%;
+    left: -6%;
+    width: 112%;
+    height: 70%;
+    margin: 0;
+  }
+  .journey-home .atlas-north {
+    top: 30%;
+    right: 5%;
+    font-size: 9px;
+  }
+  .journey-home .atlas-north span {
+    font-size: 16px;
+  }
+  .journey-home .destination-note {
+    padding: 12px 14px;
+  }
+  .journey-home .destination-note h2 {
+    font-size: 25px;
+  }
+  .journey-home .destination-note > a {
+    font-size: 18px;
+  }
+  .atlas-proportion {
+    bottom: 16px;
+    right: 6%;
+    font-size: 10px;
+  }
+  .home-workbench {
+    bottom: 43px;
+    left: 6%;
+    font-size: 9px;
+    padding: 4px 8px;
+  }
+  .destination-search {
+    width: calc(100% - 26px);
+    right: 13px;
+    top: calc(100% + 8px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .journey-home * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
