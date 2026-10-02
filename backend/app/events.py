@@ -34,6 +34,20 @@ POINTS = [
         "availability": "planned",
         "label": "规划展示",
     },
+    {
+        "id": "terracotta-entry",
+        "scenic_id": "terracotta-demo",
+        "name": "兵马俑示范区·参观入口",
+        "availability": "demo",
+        "label": "示范点位（非真实运营接入）",
+    },
+    {
+        "id": "terracotta-rest",
+        "scenic_id": "terracotta-demo",
+        "name": "兵马俑示范区·休息区",
+        "availability": "demo",
+        "label": "示范点位（非真实运营接入）",
+    },
 ]
 TRANSITIONS = {
     "request_info": ({"pending_review"}, "needs_info"),

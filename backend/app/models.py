@@ -159,6 +159,32 @@ class CreatedEvent(BaseModel):
     query_token: str
 
 
+class CreatePostcard(BaseModel):
+    """A private scenic memory, independent from environmental work orders."""
+
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    scenic_id: Literal["terracotta-demo", "qinling-demo"]
+    description: str = Field(default="", max_length=4000)
+    images: list[ImageClaim] = Field(min_length=1, max_length=1)
+
+
+class Postcard(BaseModel):
+    """Public fields of a memory; its access credential is never echoed."""
+
+    id: str
+    scenic_id: str
+    description: str
+    images: list[ImageView]
+    created_at: str
+
+
+class CreatedPostcard(BaseModel):
+    """Return the query credential once, when a memory is created."""
+
+    postcard: Postcard
+    query_token: str
+
+
 class EventList(BaseModel):
     items: list[Event]
     total: int

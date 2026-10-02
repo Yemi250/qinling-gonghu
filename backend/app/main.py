@@ -7,7 +7,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse, Response
 from starlette.exceptions import HTTPException
 
-from . import analysis, events, uploads
+from . import analysis, events, postcards, uploads
 from .ai_adapter import ModuleAI
 from .config import Settings
 from .db import Database
@@ -154,6 +154,7 @@ def create_app(settings: Settings | None = None, ai=None) -> FastAPI:
     app.include_router(uploads.router, prefix="/api")
     app.include_router(events.router, prefix="/api")
     app.include_router(analysis.router, prefix="/api")
+    app.include_router(postcards.router, prefix="/api")
 
     @app.get("/{path:path}", include_in_schema=False)
     def frontend(path: str):

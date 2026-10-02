@@ -68,7 +68,7 @@ async def upload(request: Request, file: UploadFile):
                 (image_id, path.name, "image/jpeg", len(encoded), sha, digest(token), now()),
             )
     except BaseException:
-        path.unlink(missing_ok=True)
+        # Retain the image on persistence failure; project files are never auto-deleted.
         raise
     return {
         "id": image_id,

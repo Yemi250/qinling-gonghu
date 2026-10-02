@@ -10,6 +10,7 @@
     "dev": "vite --host 127.0.0.1",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
+    "test:e2e": "node ../scripts/browser_smoke.mjs",
     "generate:types": "openapi-typescript ../docs/openapi.json -o src/api/schema.d.ts"
   },
   "dependencies": {
@@ -27,6 +28,7 @@
     "@types/react-dom": "19.3.0",
     "@vitejs/plugin-react": "6.1.1",
     "openapi-typescript": "7.13.0",
+    "playwright": "^1.63.0",
     "typescript": "5.9.3",
     "vite": "8.3.2"
   }

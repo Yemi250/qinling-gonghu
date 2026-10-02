@@ -60,6 +60,10 @@ CREATE TABLE IF NOT EXISTS analyses (
 CREATE TABLE IF NOT EXISTS sessions (
  token_hash TEXT PRIMARY KEY, expires_at TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS postcards (
+ id TEXT PRIMARY KEY, token_hash TEXT NOT NULL, scenic_id TEXT NOT NULL,
+ description TEXT NOT NULL, images TEXT NOT NULL, created_at TEXT NOT NULL
+);
 PRAGMA user_version=1;
 """
 

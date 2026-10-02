@@ -28,7 +28,14 @@
 
 返回 201：`{"event":{...Event},"query_token":"游客凭证"}`。新建状态 `pending_review`，描述允许为空以便后续补充。最多 5 张图。示范点位来自 overview；规划点位不能上报。is_demo 默认为 false，演示素材请显式标 true。
 
-## 查询与总览
+## 私密旅途明信片（2026-10-03 新增）
+
+- `POST /api/postcards`：上传后传 `{scenic_id, description, images:[{id,upload_token}]}`，当前景区为 `terracotta-demo` / `qinling-demo`，仅一张图片；返回 201 `{postcard,query_token}`。
+- `GET /api/postcards/{id}`：必须携带该明信片的 `X-Visitor-Token`，返回 `{id,scenic_id,description,images,created_at}`。缺凭证 401，错误凭证 403，不存在 404；响应不包含凭证哈希。
+- 明信片与事件分开存储，图片凭证只能绑定一次。美景收藏不创建事件、不进入 AI 治理与管理员队列，也不改变 overview 的治理统计。
+- 前端“我的足迹”只保存本浏览器的记录入口与访问凭证；照片和正文来自服务端。携带正确编号和原始凭证可在另一浏览器读取，系统不会重新签发丢失的凭证。图片依然使用随机公开能力链接，与既有上传契约一致。
+
+## 查询与总览（事件）
 
 - `GET /api/events`：仅管理员；可选 `status`、`point_id`、`assignee`、`is_demo`、`limit`（1—100）、`offset`，返回 `{items,total,limit,offset}`。
 - `GET /api/events/{id}`：管理员或该事件游客凭证。返回 Event：`id, scenic_id, point_id, description, original_images, status, assignee, resolution_images, resolution_note, review_note, is_demo, material_version, created_at, updated_at, timeline, analyses, ai_status`。
