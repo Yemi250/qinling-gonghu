@@ -69,3 +69,37 @@ def test_invalid_structure_propagates(monkeypatch):
     stub(monkeypatch, "不是 JSON")
     with pytest.raises(Exception):
         run(provider.analyze_report(photos=[], point={}, description="", config=Cfg()))
+
+
+def test_timeout_maps_to_timeout_error(monkeypatch):
+    """C 依赖 TimeoutError 记 ai_timeout，不能漏成 ai_failed。"""
+    def fake_post(url, json=None, headers=None, timeout=None):
+        raise httpx.ReadTimeout("t")
+    monkeypatch.setattr(httpx, "post", fake_post)
+    with pytest.raises(TimeoutError):
+        run(provider.analyze_report(photos=[], point={}, description="", config=Cfg()))
+
+
+def test_bad_json_maps_to_validation_error(monkeypatch):
+    """C 依赖 ValidationError 记 ai_invalid_output。"""
+    from pydantic import ValidationError
+    stub(monkeypatch, "我看不清")
+    with pytest.raises(ValidationError):
+        run(provider.analyze_report(photos=[], point={}, description="", config=Cfg()))
+
+
+def test_ok_without_evidence_downgraded_in_provider(monkeypatch):
+    """provider 也必须走归一化：无可见依据的 ok 要降级，不能直接派单。"""
+    stub(monkeypatch, json.dumps({
+        "verdict": "ok", "category": "垃圾散落", "title": "t", "summary": "s",
+        "visible_observations": []}, ensure_ascii=False))
+    r = run(provider.analyze_report(photos=[], point={}, description="", config=Cfg()))
+    assert r.category == "uncertain"
+
+
+def test_long_title_is_truncated(monkeypatch):
+    stub(monkeypatch, json.dumps({
+        "verdict": "ok", "category": "垃圾散落", "title": "很长的标题" * 20, "summary": "s",
+        "visible_observations": ["有垃圾"]}, ensure_ascii=False))
+    r = run(provider.analyze_report(photos=[], point={}, description="", config=Cfg()))
+    assert len(r.title) <= 40

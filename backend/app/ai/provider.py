@@ -10,9 +10,10 @@ from typing import Any
 
 from ..models import ReportResult, ResolutionResult
 from . import prompts
-from .client import chat_json
+from .client import AIError, chat_json
 from .config import AIConfig as CoreConfig
 from .schemas import ImageInput, ReportAnalysis, ResolutionReview, Verdict
+from .service import _as_list, _normalize_report
 
 _CATEGORY_MAP = {
     "垃圾散落": "litter",
@@ -49,6 +50,19 @@ def _cfg(config: Any, op: str) -> CoreConfig:
         max_retries=1,
         log_path="data/ai_calls.jsonl",
     )
+
+
+async def _call(cfg: CoreConfig, system: str, user_text: str, images: list, op: str) -> dict:
+    """在线程中调用模型，并按 C 的异常约定转换：超时抛 TimeoutError，坏输出抛 ValidationError。"""
+    try:
+        data, _ = await asyncio.to_thread(chat_json, cfg, system, user_text, images, op)
+        return data
+    except AIError as e:
+        if e.code == "timeout":
+            raise TimeoutError(e.message) from None
+        if e.code == "invalid_output":
+            ReportResult.model_validate({})  # 抛 pydantic.ValidationError，C 记为 ai_invalid_output
+        raise
 
 
 def _clean(items: list[str], limit: int = 20) -> list[str]:
@@ -96,11 +110,11 @@ async def analyze_report(
     """分析已保存的上报照片。"""
     cfg = _cfg(config, "analyze_report")
     images = [ImageInput(path=str(p)) for p in photos]
-    data, _ = await asyncio.to_thread(
-        chat_json, cfg, prompts.SYSTEM_REPORT,
+    data = await _call(
+        cfg, prompts.SYSTEM_REPORT,
         prompts.report_user_text(point.get("name", ""), description), images, "analyze_report",
     )
-    return _to_report(ReportAnalysis.model_validate(data))
+    return _to_report(_normalize_report(data))
 
 
 async def review_resolution(
@@ -114,9 +128,12 @@ async def review_resolution(
     cfg = _cfg(config, "review_resolution")
     before = [ImageInput(path=str(p)) for p in original_photos]
     after = [ImageInput(path=str(p)) for p in resolution_photos]
-    data, _ = await asyncio.to_thread(
-        chat_json, cfg, prompts.SYSTEM_REVIEW,
+    data = await _call(
+        cfg, prompts.SYSTEM_REVIEW,
         prompts.review_user_text("", resolution_note, len(before), len(after)),
         before + after, "review_resolution",
     )
+    data = dict(data)
+    for k in ("visible_changes", "remaining_issues", "cannot_confirm"):
+        data[k] = _as_list(data.get(k))
     return _to_resolution(ResolutionReview.model_validate(data))
