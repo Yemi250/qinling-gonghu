@@ -1,0 +1,32 @@
+{
+  "release": "C backend 0.1.0",
+  "recorded_date": "2026-10-02",
+  "timezone": "Asia/Shanghai",
+  "branch": "feat/backend",
+  "code_commit": "a4f6b2e05a8f715d21427ce7b0aecbc907b9db03",
+  "scope": "C handoff snapshot; not the final team competition freeze",
+  "lockfile_sha256": {
+    "uv.lock": "0467282eb7b54f95a1ab1bfcb0d11d88408b4a539edca45b92d2e0a72928a680",
+    "frontend/package-lock.json": "f56dd41920ba696e3ff894f180634479a813f0cbd4c047b7c47fcc4de2dc1dcf"
+  },
+  "model_configuration": {
+    "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+    "model": "qwen3-vl-plus",
+    "timeout_seconds": 60,
+    "real_call_verified": false,
+    "provider_delivered": false
+  },
+  "data_directory": "./data; Docker uses /app/data in qinling_data volume",
+  "demo_data_in_repository": [],
+  "test_materials": "Temporary synthetic 16x16 images; never evidence of model performance",
+  "validation": {
+    "backend_tests_passed": 16,
+    "ruff": "passed",
+    "locked_installs": "passed",
+    "typescript_and_vite_build": "passed",
+    "real_http_and_process_restart": "passed",
+    "docker_runtime": "not verified: Docker unavailable",
+    "remote_ci": "not run: repository push denied"
+  },
+  "remote_delivery": "GitHub rejected push with HTTP 403 for llamapw; no PR created"
+}
