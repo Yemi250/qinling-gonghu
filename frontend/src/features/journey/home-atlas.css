@@ -11,11 +11,16 @@
   gap: 10px;
   letter-spacing: 0.075em;
 }
-.journey-home {
+.journey-framed {
+  --journey-heading-size: clamp(30px, 3.5vw, 52px);
+  --journey-copy-size: clamp(12px, 1.36vw, 19px);
+  --journey-content-inset: 3.2%;
   padding: 12px;
+  background: #afa18d;
+}
+.journey-home {
   height: 100svh;
   min-height: 660px;
-  background: #afa18d;
 }
 .journey-canvas {
   height: 100%;
@@ -27,7 +32,7 @@
   box-shadow: 0 0 0 1px #7f71582c;
   background: #efe6d4;
 }
-.journey-home .journey-header {
+.journey-framed .journey-header {
   margin: 0;
   height: 70px;
   min-height: 70px;
@@ -38,7 +43,7 @@
   z-index: 10;
   gap: 20px;
 }
-.journey-home .journey-header nav {
+.journey-framed .journey-header nav {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
@@ -48,10 +53,10 @@
   font-weight: 600;
   color: #554b3c;
 }
-.journey-home .journey-header nav a {
+.journey-framed .journey-header nav a {
   padding: 21px 0 23px;
 }
-.journey-home .journey-header nav .active:after {
+.journey-framed .journey-header nav .active:after {
   bottom: 0;
   left: 17%;
   width: 66%;
@@ -158,7 +163,7 @@
 }
 .journey-home .atlas-heading h1 {
   margin: 0 0 15px;
-  font-size: clamp(30px, 3.5vw, 52px);
+  font-size: var(--journey-heading-size);
   line-height: 1.45;
   font-weight: 650;
   letter-spacing: 0.075em;
@@ -170,7 +175,7 @@
   display: block;
   font-family: "Noto Serif SC Variable", serif;
   font-weight: 500;
-  font-size: clamp(12px, 1.36vw, 19px);
+  font-size: var(--journey-copy-size);
   line-height: 1.7;
   letter-spacing: 0.025em;
   color: #73634e;
@@ -426,23 +431,27 @@
   }
 }
 @media (max-width: 900px) {
-  .journey-home {
+  .journey-framed {
+    --journey-heading-size: 32px;
+    --journey-copy-size: 13px;
     padding: 8px;
+  }
+  .journey-home {
     min-height: 680px;
   }
-  .journey-home .journey-header {
+  .journey-framed .journey-header {
     padding: 0 20px;
     height: 66px;
     min-height: 66px;
   }
-  .journey-home .journey-brand {
+  .journey-framed .journey-brand {
     font-size: 19px;
   }
   .brand-mountains {
     width: 60px;
     height: 30px;
   }
-  .journey-home .journey-header nav {
+  .journey-framed .journey-header nav {
     font-size: 14px;
     gap: 26px;
   }
@@ -453,22 +462,27 @@
     display: none;
   }
   .journey-home .atlas-heading h1 {
-    font-size: 32px;
+    font-size: var(--journey-heading-size);
   }
   .journey-home .atlas-heading p {
-    font-size: 13px;
+    font-size: var(--journey-copy-size);
   }
 }
 @media (max-width: 700px) {
+  .journey-framed {
+    --journey-heading-size: 30px;
+    --journey-copy-size: 14px;
+    --journey-content-inset: 6%;
+    padding: 6px;
+  }
   .journey-home {
     height: 100svh;
     min-height: 730px;
-    padding: 6px;
   }
   .journey-canvas {
     border-radius: 9px;
   }
-  .journey-home .journey-header {
+  .journey-framed .journey-header {
     height: 104px;
     min-height: 104px;
     padding: 12px 18px 0;
@@ -477,12 +491,12 @@
     flex-wrap: wrap;
     gap: 0;
   }
-  .journey-home .journey-brand {
+  .journey-framed .journey-brand {
     font-size: 21px;
     margin-top: 1px;
     order: 1;
   }
-  .journey-home .brand-mountains {
+  .journey-framed .brand-mountains {
     width: 63px;
     height: 31px;
   }
@@ -495,7 +509,7 @@
     width: 29px;
     height: 29px;
   }
-  .journey-home .journey-header nav {
+  .journey-framed .journey-header nav {
     width: 100%;
     left: auto;
     transform: none;
@@ -506,7 +520,7 @@
     font-weight: 550;
     order: 3;
   }
-  .journey-home .journey-header nav a {
+  .journey-framed .journey-header nav a {
     padding: 10px 0 12px;
   }
   .journey-home .atlas-heading {
@@ -515,12 +529,12 @@
     max-width: 91%;
   }
   .journey-home .atlas-heading h1 {
-    font-size: 30px;
+    font-size: var(--journey-heading-size);
     margin: 0 0 11px;
     letter-spacing: 0.05em;
   }
   .journey-home .atlas-heading p {
-    font-size: 12px;
+    font-size: var(--journey-copy-size);
     line-height: 1.8;
     max-width: 310px;
   }

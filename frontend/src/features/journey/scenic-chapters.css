@@ -1,0 +1,143 @@
+/* Scenic chapters inherit the atlas frame, header and typography scale. */
+.scene-page.journey-framed {
+  min-height: 100svh;
+}
+.scene-page .journey-canvas {
+  height: auto;
+  min-height: calc(100svh - 24px);
+  background: var(--paper);
+}
+.scene-page .scene-hero {
+  height: calc(max(100svh, 660px) - 96px);
+  min-height: 564px;
+  max-height: none;
+}
+.scene-page .scene-back {
+  left: var(--journey-content-inset);
+  font-size: 14px;
+}
+.scene-page .scene-story {
+  margin-left: var(--journey-content-inset);
+  width: min(460px, 42%);
+}
+.scene-page .scene-story h1 {
+  font-size: var(--journey-heading-size);
+  line-height: 1.45;
+  font-weight: 650;
+  letter-spacing: 0.075em;
+}
+.scene-page .scene-story p {
+  font-family: "Noto Serif SC Variable", serif;
+  font-size: var(--journey-copy-size);
+  font-weight: 500;
+  line-height: 1.7;
+  max-width: 430px;
+}
+.scene-page .scene-location {
+  right: var(--journey-content-inset);
+  font-size: 14px;
+}
+.scene-page .scene-notes {
+  width: calc(100% - 6.4%);
+  max-width: 1560px;
+  padding: 70px 0 84px;
+  gap: clamp(44px, 6vw, 120px);
+}
+.scene-page .scene-invitation h2 {
+  font-size: clamp(28px, 2.5vw, 38px);
+}
+.scene-page .scene-invitation p {
+  font-size: 16px;
+}
+.scene-page .field-journal {
+  padding: 34px 40px 28px 50px;
+}
+.scene-page .journal-topline,
+.scene-page .journal-foot {
+  font-size: 13px;
+}
+.scene-page .journal-choice {
+  padding: 30px 0;
+}
+.scene-page .journal-choice strong {
+  font-size: 24px;
+}
+.scene-page .journal-choice small {
+  font-size: 14px;
+}
+.scene-page .journey-footer {
+  margin: 0 3.2%;
+  font-size: 12px;
+}
+@media (max-width: 900px) {
+  .scene-page .journey-canvas {
+    min-height: calc(100svh - 16px);
+  }
+  .scene-page .scene-hero {
+    height: calc(max(100svh, 680px) - 84px);
+    min-height: 596px;
+  }
+  .scene-page .scene-story {
+    width: 44%;
+  }
+  .scene-page .scene-notes {
+    gap: 40px;
+  }
+  .scene-page .field-journal {
+    padding: 28px 25px 24px 35px;
+  }
+  .scene-page .journal-choice {
+    gap: 14px;
+  }
+  .scene-page .journal-choice strong {
+    font-size: 22px;
+  }
+  .scene-page .journal-choice small {
+    font-size: 13px;
+  }
+}
+@media (max-width: 700px) {
+  .scene-page .journey-canvas {
+    min-height: calc(100svh - 12px);
+  }
+  .scene-page .scene-hero {
+    height: calc(max(100svh, 730px) - 118px);
+    min-height: 612px;
+  }
+  .scene-page.scene--clay .scene-hero {
+    background-position: 68% center;
+  }
+  .scene-page .scene-story {
+    width: 88%;
+    max-width: 310px;
+    padding-top: 110px;
+  }
+  .scene-page .scene-notes {
+    width: 88%;
+    padding: 42px 0 56px;
+  }
+  .scene-page .scene-invitation h2 {
+    font-size: 27px;
+  }
+  .scene-page .scene-invitation p {
+    font-size: 14px;
+  }
+  .scene-page .field-journal {
+    padding: 24px 22px 22px 30px;
+  }
+  .scene-page .journal-choice {
+    padding: 23px 0;
+    gap: 12px;
+  }
+  .scene-page .journal-choice strong {
+    font-size: 20px;
+  }
+  .scene-page .journal-choice small,
+  .scene-page .journal-foot {
+    font-size: 12px;
+  }
+  .scene-page .journey-footer {
+    margin: 0 6%;
+    font-size: 11px;
+  }
+}

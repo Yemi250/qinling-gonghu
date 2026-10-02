@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, NavLink, useParams } from "react-router";
+import { Link, NavLink, useLocation, useParams } from "react-router";
 import {
   ArrowLeft,
   ArrowUpRight,
@@ -17,9 +17,11 @@ import { Notebook } from "./Notebook";
 import { SCENES, readReceipts, dateLabel } from "./scenes";
 import "./journey.css";
 import "./home-atlas.css";
+import "./scenic-chapters.css";
 
 /** A quiet navigation layer shared by the atlas and themed scenic chapters. */
 export function JourneyHeader({ immersive = false }: { immersive?: boolean }) {
+  const { pathname } = useLocation();
   const [searchOpen, setSearchOpen] = useState(false);
   const [search, setSearch] = useState("");
   return (
@@ -50,7 +52,15 @@ export function JourneyHeader({ immersive = false }: { immersive?: boolean }) {
         <span>秦岭共护</span>
       </Link>
       <nav aria-label="主导航">
-        <NavLink to="/" end>
+        <NavLink
+          to="/"
+          end
+          className={
+            pathname === "/" || pathname === "/scenic/terracotta"
+              ? "active"
+              : ""
+          }
+        >
           陕西漫游
         </NavLink>
         <NavLink to="/scenic/taibai">秦岭专栏</NavLink>
@@ -134,7 +144,7 @@ export function JourneyFooter() {
 /** Start with geography and destination exploration, rather than a dashboard. */
 export function JourneyHome() {
   return (
-    <div className="journey-page journey-home">
+    <div className="journey-page journey-framed journey-home">
       <div className="journey-canvas">
         <JourneyHeader immersive />
         <main className="atlas-main">
@@ -175,77 +185,84 @@ export function ScenicPage() {
       </div>
     );
   return (
-    <div className={`journey-page scene-page scene--${scene.palette}`}>
-      <JourneyHeader />
-      <main>
-        <section
-          className="scene-hero"
-          style={{ backgroundImage: `url(assets/${scene.image}.png)` }}
-        >
-          <Link className="scene-back" to="/">
-            <ArrowLeft size={16} /> 回到山河地图
-          </Link>
-          <div className="scene-story">
-            <h1>
-              {scene.title.split("，")[0]}，<br />
-              {scene.title.split("，")[1]}
-            </h1>
-            <p>{scene.description}</p>
-          </div>
-          <span className="scene-location">
-            <MapPin size={15} />
-            {scene.city} · {scene.name} <small>视觉意境图</small>
-          </span>
-          <div className="scene-bottom-fade" />
-        </section>
-        <section className="scene-notes">
-          <div className="scene-invitation">
-            <span className="eyebrow">YOUR LITTLE FIELD JOURNAL</span>
-            <h2>
-              这一程，
-              <br />
-              值得被好好记住。
-            </h2>
-            <p>
-              翻开随行手记，收藏一个瞬间，
-              <br />
-              或者为风景做一件小事。
-            </p>
-            <span className="handwritten">来过，也照看过。</span>
-          </div>
-          <div className="field-journal">
-            <span className="journal-spine" />
-            <span className="journal-topline">
-              {scene.name} / 随行手记 <BookOpen size={17} />
-            </span>
-            <button
-              className="journal-choice"
-              onClick={() => setMode("memory")}
-            >
-              <Camera strokeWidth={1.2} size={30} />
-              <span>
-                <strong>留住这一刻</strong>
-                <small>一张照片，一段只属于你的风景记忆</small>
-              </span>
-              <ArrowUpRight size={20} />
-            </button>
-            <button className="journal-choice" onClick={() => setMode("care")}>
-              <Heart strokeWidth={1.2} size={30} />
-              <span>
-                <strong>一起照看这里</strong>
-                <small>记录需要关注的地方，让景区接力处理</small>
-              </span>
-              <ArrowUpRight size={20} />
-            </button>
-            <div className="journal-foot">
-              <Feather size={15} />
-              <span>你的善意，会有回音。</span>
-              <span className="journal-stamp">山河共护</span>
+    <div
+      className={`journey-page journey-framed scene-page scene--${scene.palette}`}
+    >
+      <div className="journey-canvas">
+        <JourneyHeader immersive />
+        <main>
+          <section
+            className="scene-hero"
+            style={{ backgroundImage: `url(assets/${scene.image}.png)` }}
+          >
+            <Link className="scene-back" to="/">
+              <ArrowLeft size={16} /> 回到山河地图
+            </Link>
+            <div className="scene-story">
+              <h1>
+                {scene.title.split("，")[0]}，<br />
+                {scene.title.split("，")[1]}
+              </h1>
+              <p>{scene.description}</p>
             </div>
-          </div>
-        </section>
-      </main>
-      <JourneyFooter />
+            <span className="scene-location">
+              <MapPin size={15} />
+              {scene.city} · {scene.name} <small>视觉意境图</small>
+            </span>
+            <div className="scene-bottom-fade" />
+          </section>
+          <section className="scene-notes">
+            <div className="scene-invitation">
+              <span className="eyebrow">YOUR LITTLE FIELD JOURNAL</span>
+              <h2>
+                这一程，
+                <br />
+                值得被好好记住。
+              </h2>
+              <p>
+                翻开随行手记，收藏一个瞬间，
+                <br />
+                或者为风景做一件小事。
+              </p>
+              <span className="handwritten">来过，也照看过。</span>
+            </div>
+            <div className="field-journal">
+              <span className="journal-spine" />
+              <span className="journal-topline">
+                {scene.name} / 随行手记 <BookOpen size={17} />
+              </span>
+              <button
+                className="journal-choice"
+                onClick={() => setMode("memory")}
+              >
+                <Camera strokeWidth={1.2} size={30} />
+                <span>
+                  <strong>留住这一刻</strong>
+                  <small>一张照片，一段只属于你的风景记忆</small>
+                </span>
+                <ArrowUpRight size={20} />
+              </button>
+              <button
+                className="journal-choice"
+                onClick={() => setMode("care")}
+              >
+                <Heart strokeWidth={1.2} size={30} />
+                <span>
+                  <strong>一起照看这里</strong>
+                  <small>记录需要关注的地方，让景区接力处理</small>
+                </span>
+                <ArrowUpRight size={20} />
+              </button>
+              <div className="journal-foot">
+                <Feather size={15} />
+                <span>你的善意，会有回音。</span>
+                <span className="journal-stamp">山河共护</span>
+              </div>
+            </div>
+          </section>
+        </main>
+        <JourneyFooter />
+      </div>
       {mode && (
         <Notebook scene={scene} mode={mode} close={() => setMode(null)} />
       )}
