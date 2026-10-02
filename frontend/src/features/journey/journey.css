@@ -464,7 +464,7 @@
   position: absolute;
   top: 32px;
   left: 5.2%;
-  font-size: 11px;
+  font-size: 13px;
   display: flex;
   align-items: center;
   gap: 9px;
@@ -473,33 +473,32 @@
 }
 .scene-story {
   position: relative;
-  padding: 126px 0 92px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+  padding: 96px 0 106px;
   margin-left: 10.4%;
-  max-width: 360px;
+  width: min(440px, 38%);
   z-index: 1;
   animation: note-enter 0.8s both;
 }
 .scene-story h1 {
-  font-size: clamp(32px, 4vw, 58px);
-  line-height: 1.65;
+  font-size: clamp(40px, 4.1vw, 64px);
+  line-height: 1.4;
+  font-weight: 500;
   letter-spacing: 0.05em;
-  margin: 25px 0;
+  margin: 0 0 28px;
 }
 .scene-story p {
-  font-size: 12px;
-  line-height: 2.2;
-  max-width: 290px;
+  font-size: clamp(15px, 1vw, 17px);
+  line-height: 1.95;
+  max-width: 370px;
+  margin: 0;
   color: var(--ink-2);
-  letter-spacing: 0.05em;
-}
-.scene-coordinates {
-  display: block;
-  font:
-    9px "IBM Plex Mono",
-    monospace;
-  color: #978875;
-  margin-top: 30px;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.025em;
+  text-wrap: pretty;
+  white-space: pre-line;
 }
 .scene-location {
   position: absolute;
@@ -517,8 +516,8 @@
   color: #6c5e4c;
 }
 .scene-location small {
-  font-size: 8px;
-  opacity: 0.7;
+  font-size: 10px;
+  opacity: 0.85;
 }
 .scene-bottom-fade {
   position: absolute;
@@ -532,23 +531,24 @@
   background: linear-gradient(transparent, #f0f1ed);
 }
 .scene-notes {
-  max-width: 1000px;
+  width: calc(100% - 64px);
+  max-width: 1120px;
   margin: auto;
-  padding: 58px 32px 75px;
+  padding: 64px 0 80px;
   display: grid;
-  grid-template-columns: 1fr 1.4fr;
-  gap: 85px;
+  grid-template-columns: 0.95fr 1.35fr;
+  gap: clamp(44px, 5vw, 90px);
   align-items: center;
 }
 .scene-invitation h2 {
-  font-size: 28px;
-  line-height: 1.6;
-  letter-spacing: 0.08em;
-  margin: 17px 0;
+  font-size: clamp(28px, 2.3vw, 34px);
+  line-height: 1.55;
+  letter-spacing: 0.04em;
+  margin: 18px 0 20px;
 }
 .scene-invitation p {
-  font-size: 11px;
-  line-height: 2.2;
+  font-size: 14px;
+  line-height: 2;
   color: var(--ink-2);
 }
 .handwritten {
@@ -587,8 +587,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 10px;
-  color: #a19079;
+  font-size: 12px;
+  color: #81725f;
   letter-spacing: 0.1em;
   margin-bottom: 20px;
 }
@@ -613,20 +613,22 @@
 }
 .journal-choice span {
   flex: 1;
+  min-width: 0;
 }
 .journal-choice strong {
   display: block;
   font:
-    19px "Noto Serif SC Variable",
+    22px "Noto Serif SC Variable",
     serif;
   letter-spacing: 0.08em;
   font-weight: 450;
 }
 .journal-choice small {
   display: block;
-  font-size: 9px;
-  color: #a3927b;
-  margin-top: 10px;
+  font-size: 12px;
+  color: #86745f;
+  line-height: 1.8;
+  margin-top: 8px;
 }
 .journal-foot {
   display: flex;
@@ -634,8 +636,8 @@
   gap: 8px;
   border-top: 1px solid #dfd5c4;
   padding-top: 21px;
-  font-size: 9px;
-  color: #a4937c;
+  font-size: 12px;
+  color: #86745f;
 }
 .journal-stamp {
   margin-left: auto;
@@ -1454,30 +1456,33 @@
   }
   .scene-story {
     padding-top: 115px;
+    padding-bottom: 100px;
+    justify-content: flex-start;
     margin-left: 8%;
-    max-width: 290px;
+    width: 84%;
+    max-width: 310px;
   }
   .scene-story h1 {
-    font-size: 36px;
-    margin: 22px 0;
+    font-size: clamp(36px, 9.5vw, 46px);
+    line-height: 1.42;
+    margin: 0 0 24px;
   }
   .scene-story p {
-    font-size: 11px;
-    max-width: 250px;
+    font-size: 14px;
+    max-width: 285px;
   }
   .scene-location {
     font-size: 10px;
     bottom: 28px;
   }
   .scene-notes {
-    padding: 35px 7% 50px;
+    width: 86%;
+    padding: 40px 0 56px;
     display: block;
   }
   .scene-invitation h2 {
-    font-size: 25px;
-  }
-  .scene-invitation h2 br {
-    display: none;
+    font-size: 27px;
+    letter-spacing: 0.025em;
   }
   .scene-invitation p {
     margin: 15px 0 25px;
@@ -1493,10 +1498,10 @@
     padding: 23px 0;
   }
   .journal-choice strong {
-    font-size: 18px;
+    font-size: 20px;
   }
   .journal-choice small {
-    font-size: 9px;
+    font-size: 12px;
     line-height: 1.7;
   }
   .journal-choice > svg:first-child {

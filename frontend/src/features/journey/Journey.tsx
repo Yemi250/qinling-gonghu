@@ -186,13 +186,11 @@ export function ScenicPage() {
             <ArrowLeft size={16} /> 回到山河地图
           </Link>
           <div className="scene-story">
-            <span className="eyebrow">{scene.eyebrow}</span>
             <h1>
               {scene.title.split("，")[0]}，<br />
               {scene.title.split("，")[1]}
             </h1>
             <p>{scene.description}</p>
-            <span className="scene-coordinates">{scene.coordinate}</span>
           </div>
           <span className="scene-location">
             <MapPin size={15} />

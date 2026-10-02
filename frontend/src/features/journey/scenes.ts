@@ -5,26 +5,22 @@ export const SCENES = {
     name: "兵马俑",
     city: "西安",
     scenicId: "terracotta-demo",
-    eyebrow: "长安 · 泥土里的千年",
     title: "与千年，打个照面。",
     description:
-      "陶土有温度，时间有回声。走近一排排沉默的守望者，也为这段旅程留下一点温柔。",
+      "陶土有温度，时间有回声。\n走近一排排沉默的守望者，\n也为这段旅程留下一点温柔。",
     image: "terracotta",
     palette: "clay",
-    coordinate: "34.38° N / 109.28° E",
   },
   taibai: {
     slug: "taibai",
     name: "太白山",
     city: "宝鸡",
     scenicId: "qinling-demo",
-    eyebrow: "秦岭 · 云端的来信",
     title: "把脚步，交给山风。",
     description:
-      "沿着山径向上，穿过林梢与云海。记录你遇见的美，也一起照看这座山。",
+      "沿着山径向上，穿过林梢与云海。\n记录你遇见的美，\n也一起照看这座山。",
     image: "taibai",
     palette: "mist",
-    coordinate: "33.96° N / 107.77° E",
   },
 } as const;
 export type Scene = (typeof SCENES)[keyof typeof SCENES];
