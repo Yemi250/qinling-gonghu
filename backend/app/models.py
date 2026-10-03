@@ -87,6 +87,7 @@ class ReportResult(BaseModel):
     follow_up_questions: list[Text] = Field(max_length=20)
     recommendations: list[Text] = Field(max_length=20)
     suggested_department: str = Field(max_length=200)
+    verdict: Literal["ok", "need_info", "no_issue", "unrelated", "uncertain"] | None = None
 
 
 class ResolutionResult(BaseModel):
@@ -95,6 +96,112 @@ class ResolutionResult(BaseModel):
     remaining_issues: list[Text] = Field(max_length=20)
     uncertainties: list[Text] = Field(max_length=20)
     acceptance_recommendation: Text
+    suggestion: Literal["recommend_accept", "recommend_reject", "need_human"] | None = None
+    same_image: bool = False
+    reviewed_images: list[ImageView] = Field(default_factory=list)
+    before_total: int = 0
+
+
+class ProofEvidence(BaseModel):
+    label: str
+    value: str
+    source: Literal["system", "visitor", "model"]
+
+
+class ProofStep(BaseModel):
+    key: Literal["material", "content", "association", "decision"]
+    state: Literal["idle", "running", "pass", "attention", "failed", "skipped"]
+    message: str = ""
+    evidence: list[ProofEvidence] = Field(default_factory=list)
+
+
+class ProofConclusion(BaseModel):
+    kind: Literal["process", "supplement", "merge", "no_issue", "human_review"]
+    reason: str
+
+
+class ProofView(BaseModel):
+    id: str
+    status: Literal["running", "succeeded", "partial", "failed"]
+    material_version: int
+    stale: bool
+    model: str
+    started_at: str
+    finished_at: str | None = None
+    steps: list[ProofStep]
+    conclusion: ProofConclusion | None = None
+    error: str | None = None
+
+
+class GovernanceMilestone(BaseModel):
+    label: str
+    created_at: str
+    note: str = ""
+
+
+class GovernanceSummary(BaseModel):
+    case_id: str
+    status: Status
+    point_id: str
+    submission_count: int
+    unique_image_count: int
+    duplicate_image_count: int
+    milestones: list[GovernanceMilestone]
+    closed_at: str | None = None
+    closing_note: str | None = None
+
+
+class MergeRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    target_event_id: Identifier
+    source_revision: int = Field(ge=1)
+    target_revision: int = Field(ge=1)
+    reason: Text
+
+
+class UnmergeRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    relationship_version: int = Field(ge=1)
+    reason: Text
+
+
+class CandidateMatch(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    relation: Literal["same_issue", "different", "uncertain"]
+    reasons: list[Text] = Field(max_length=20)
+    uncertainties: list[Text] = Field(max_length=20)
+
+
+class AssociationCandidate(CandidateMatch):
+    id: str
+    title: str
+    point_id: str
+    created_at: str
+    version: int
+    source_revision: int
+    source_report_id: str | None
+    target_report_id: str | None
+    exact: bool
+    dhash_distance: int
+    submission_count: int
+    unique_image_count: int
+    images: list[ImageView]
+    stale: bool = False
+
+
+class AssociationMember(BaseModel):
+    id: str
+    relationship_version: int
+    description: str
+    original_images: list[ImageView]
+
+
+class AssociationView(BaseModel):
+    candidates: list[AssociationCandidate]
+    stale: bool
+    members: list[AssociationMember]
+    before_images: list[ImageView]
+    before_total: int
 
 
 class ErrorInfo(BaseModel):
@@ -152,6 +259,11 @@ class Event(BaseModel):
     timeline: list[TimelineEntry]
     analyses: list[AnalysisView]
     ai_status: dict[Literal["report", "resolution"], AIState]
+    revision: int = 1
+    relationship_version: int = 1
+    merged_into: str | None = None
+    proof: ProofView | None = None
+    governance: GovernanceSummary | None = None
 
 
 class CreatedEvent(BaseModel):
@@ -226,3 +338,4 @@ class Overview(BaseModel):
     demo_count: int
     by_status: dict[Status, int]
     points: list[Point]
+    submission_count: int = 0

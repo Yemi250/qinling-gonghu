@@ -8,7 +8,10 @@ import {
   type Postcard,
 } from "../../api/client";
 import { AiEventCard } from "../visitor/AiEventCard";
+import { VisitorProofCard, SharedCaseFeedback } from "../ecoproof";
+import "./journey-upgrade.css";
 import { JourneyHeader, JourneyFooter } from "./Journey";
+import { usePointNames } from "./usePointNames";
 import {
   readReceipts,
   dateLabel,
@@ -32,7 +35,7 @@ function useReceipt(kind: "memory" | "care") {
         readReceipts().find((r) => r.id === id && r.kind === kind),
     );
   }, [id, kind, location.key]);
-  return { id, receipt, setReceipt, auto: !!location.state?.startAnalysis };
+  return { id, receipt: receipt?.id === id ? receipt : undefined, setReceipt, auto: !!location.state?.startAnalysis };
 }
 export function MemoryPage() {
   const { id, receipt, setReceipt } = useReceipt("memory");
@@ -99,7 +102,8 @@ export function CarePage() {
   const [event, setEvent] = useState<Event>();
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const started = useRef(false);
+  const started = useRef("");
+  const pointName = usePointNames();
   async function refresh() {
     if (!receipt) return;
     try {
@@ -114,7 +118,8 @@ export function CarePage() {
     setBusy(true);
     setError("");
     try {
-      setEvent(await api.analyze(id, "report", { queryToken: receipt.token }));
+      await api.proof(id, { queryToken: receipt.token });
+      setEvent(await api.event(id, { queryToken: receipt.token }));
     } catch (e) {
       setError(e instanceof Error ? e.message : "分析暂未完成");
       try {
@@ -146,13 +151,33 @@ export function CarePage() {
       auto &&
       event &&
       receipt &&
-      !started.current &&
-      event.ai_status.report === "not_started"
+      event.id === id && started.current !== id &&
+      !event.proof && !event.merged_into && event.ai_status.report === "not_started"
     ) {
-      started.current = true;
+      started.current = id;
       void analyze();
     }
-  }, [auto, event, receipt]);
+  }, [id, auto, event, receipt]);
+  useEffect(() => {
+    if (!receipt || event?.proof?.status !== "running") return;
+    let live = true;
+    let fetching = false;
+    const poll = async () => {
+      if (fetching) return;
+      fetching = true;
+      try {
+        const next = await api.event(id, { queryToken: receipt.token });
+        if (live) { setEvent(next); setError(""); }
+      } catch (e) {
+        if (live) setError(e instanceof Error ? e.message : "读取进度暂时失败");
+      } finally { fetching = false; }
+    };
+    const timer = window.setInterval(poll, 1000);
+    return () => { live = false; window.clearInterval(timer); };
+  }, [id, receipt, event?.proof?.status]);
+  const processing = busy || event?.proof?.status === "running";
+  const canAnalyze = !!event && !event.merged_into &&
+    ["needs_info", "pending_review"].includes(event.status);
   return (
     <div className="journey-page">
       <JourneyHeader />
@@ -172,28 +197,38 @@ export function CarePage() {
                 {error}
               </p>
             )}
-            {event ? (
+            {event?.id === id ? (
               <div className="care-layout">
+                <div className="care-evidence-stack">
+                <VisitorProofCard
+                  runState={event.proof?.status ?? "idle"}
+                  stale={event.proof?.stale ?? false}
+                  steps={(event.proof?.steps ?? []).map(s => ({ ...s, evidence: s.evidence ?? [] }))}
+                  conclusion={event.proof?.conclusion ?? null}
+                  model={event.proof?.model ?? null}
+                  startedAt={event.proof?.started_at ?? null}
+                  finishedAt={event.proof?.finished_at ?? null}
+                  busy={processing}
+                  error={event.proof?.error ?? (error || null)}
+                  onStart={canAnalyze ? analyze : undefined}
+                  onRetry={canAnalyze ? analyze : undefined}
+                />
                 <AiEventCard
                   event={event}
-                  pointName={receipt.scenic}
-                  onRetry={
-                    ["needs_info", "pending_review"].includes(event.status)
-                      ? analyze
-                      : undefined
-                  }
-                  retrying={busy}
+                  pointName={pointName(event.point_id, receipt.scenic)}
+                  retrying={processing}
                 />
+                </div>
                 <aside className="care-timeline">
                   <span className="eyebrow">共护进程</span>
-                  <h2>{STATUS_LABELS[event.status]}</h2>
+                  <h2>{STATUS_LABELS[event.governance?.status ?? event.status]}</h2>
                   <p>
                     {event.assignee
                       ? `接力人：${event.assignee}`
                       : "等待景区人工查看"}
                   </p>
                   <div className="real-ai-status">
-                    {busy ? (
+                    {processing ? (
                       <>
                         <LoaderCircle className="spin" size={17} /> AI
                         正在分析照片
@@ -202,11 +237,24 @@ export function CarePage() {
                       <>编号 {event.id.slice(0, 8).toUpperCase()}</>
                     )}
                     <small>
-                      {busy
+                      {processing
                         ? "正在从照片里整理环境线索，请稍候"
                         : "分析结果与处理进程来自服务端记录"}
                     </small>
                   </div>
+                  {event.governance && <SharedCaseFeedback
+                    caseCode={`QL-${event.governance.case_id.slice(0, 8).toUpperCase()}`}
+                    statusLabel={STATUS_LABELS[event.governance.status]}
+                    pointName={pointName(event.governance.point_id, receipt.scenic)}
+                    submissionCount={event.governance.submission_count}
+                    uniqueImageCount={event.governance.unique_image_count}
+                    duplicateImageCount={event.governance.duplicate_image_count}
+                    milestones={event.governance.milestones.map(m => ({
+                      label: m.label, createdAt: m.created_at, note: m.note,
+                    }))}
+                    closedAt={event.governance.closed_at}
+                    closingNote={event.governance.closing_note}
+                  />}
                   <ol>
                     {event.timeline.map((t) => (
                       <li key={t.id}>

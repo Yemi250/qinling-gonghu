@@ -7,6 +7,7 @@ export type EventStatus = Models["Status"];
 export type Action = Models["Action"];
 export type CreateEvent = Models["CreateEvent"];
 export type Postcard = Models["Postcard"];
+export type Associations = Models["AssociationView"];
 export type Credentials = { adminToken?: string; queryToken?: string };
 
 export const STATUS_LABELS: Record<EventStatus, string> = {
@@ -133,4 +134,20 @@ export const api = {
       { method: "POST", body: JSON.stringify({ kind }) },
       credentials,
     ),
+  proof: (id: string, credentials: Credentials) =>
+    request<Models["ProofView"]>(
+      `/events/${encodeURIComponent(id)}/proof`,
+      { method: "POST" },
+      credentials,
+    ),
+  associations: (id: string, credentials: Credentials) =>
+    request<Associations>(`/events/${encodeURIComponent(id)}/associations`, {}, credentials),
+  merge: (id: string, body: Models["MergeRequest"], credentials: Credentials) =>
+    request<Event>(`/events/${encodeURIComponent(id)}/merge`, {
+      method: "POST", body: JSON.stringify(body),
+    }, credentials),
+  unmerge: (id: string, body: Models["UnmergeRequest"], credentials: Credentials) =>
+    request<Event>(`/events/${encodeURIComponent(id)}/unmerge`, {
+      method: "POST", body: JSON.stringify(body),
+    }, credentials),
 };

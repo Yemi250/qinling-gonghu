@@ -50,8 +50,8 @@ def run() -> None:
         "model": settings.ai_model,
         "isolated_data": str(data),
         "fixture_notice": "AI-generated visual fixtures, not real operational incidents. "
-        "Before/after deliberately reuse the SAME mountain photo; this verifies connectivity, "
-        "not successful remediation or recognition accuracy.",
+        "Two reports verify real connectivity. Before/after reuse the SAME mountain photo; "
+        "rectification verifies the deterministic no-new-evidence guard, not a model call.",
         "calls": [],
         "passed": False,
     }
@@ -198,7 +198,9 @@ def run() -> None:
                     }
                 )
             assert event["ai_status"]["resolution"] == "succeeded" and analysis["result"]
-            print(f"Comparison: succeeded ({evidence['calls'][-1]['elapsed_ms']} ms)", flush=True)
+            assert analysis["model"] == "system:sha256"
+            assert analysis["result"]["same_image"]
+            print("Same-image guard: succeeded (no rectification model call)", flush=True)
             node = os.environ.get("NODE_EXECUTABLE") or shutil.which("node")
             assert node, "Node is required for real-result browser verification"
             subprocess.run(

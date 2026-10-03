@@ -4,7 +4,9 @@
 
 当前包含陕西十市地图与六个可操作篇章：兵马俑、太白山、华山、宝塔山、汉中油菜花海、镇北台。六景区共用导航、首屏比例和随行手记，各有独立意境与配色；支持私密照片收藏、环境共护记录和景区工作台。照片收藏独立存储，不生成治理工单。全部点位均为示范点位，未正式接入真实景区。
 
-本机硅基流动 `Qwen/Qwen3-VL-30B-A3B-Instruct` 已通过真实 HTTP 上传、两次不同图片识图、一次前后对比、结果保存与浏览器刷新验收。密钥仅在服务端配置；这证明当前账号与网络下模型连接成功，不代表识别准确率或实际整改效果。完整结果与复现方法见 [六景区体验与模型验收](docs/六景区体验与模型验收.md)。
+本轮新增 **EcoProof 证据分析、共同治理事件归并、AI 整改核验**。模型整理照片依据；系统区分重复图片与不同图片；管理员对照候选确认归并、处理与验收。各份游客原凭证仍可查看共同回音，不显示虚构真实性百分比，不把投稿数当作人数。
+
+本机硅基流动 `Qwen/Qwen3-VL-30B-A3B-Instruct` 已通过真实识图、不同角度关联比对、整改前后对比、保存与浏览器刷新验收。最新一轮 5 次上游调用成功，另有 2 次网络失败经页面重试恢复；同图整改负例由系统检查拦截，没有调用模型。测试图片明确标注为模拟场景，连接与流程通过不代表实际准确率或真实整改效果。见 [EcoProof升级验收](docs/EcoProof升级验收.md) 与 [升级契约](docs/EcoProof升级契约.md)。此前六景区记录保留于 [六景区体验与模型验收](docs/六景区体验与模型验收.md)。
 
 ## 体验路线
 
@@ -45,7 +47,7 @@ uv run uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 --workers 1 --n
 
 1. `POST /api/uploads` 上传照片，保存 `id`、`upload_token`。
 2. `POST /api/events` 填入 `scenic_id=qinling-demo`、`point_id=trail-entrance`、描述及图片凭证；演示素材带 `is_demo=true`。保存返回的 `query_token`。
-3. `POST /api/events/{id}/analysis`，body 为 `{"kind":"report"}`，携带 `X-Visitor-Token`。请求真实图像模型；未配置或调用失败时如实返回错误，事件仍存在，可重试或人工处理。
+3. `POST /api/events/{id}/proof`，携带 `X-Visitor-Token`，返回 202。随后 GET 读取真实材料检查、内容分析、关联比对、处置建议。未配置或调用失败时保留已完成阶段和材料，可重试或人工处理；既有 `/analysis` 路径保持兼容。
 4. `POST /api/auth/login` 登录。后续管理员请求带 `Authorization: Bearer <access_token>`。
 5. `/actions` 依次调用 assign（assignee）、submit_resolution（新上传的 resolution_images 和 note）、close（人工验收 note）。必要时 request_info → supplement，或验收 return → 再次整改。
 6. 游客用 `GET /api/events/{id}` 和自己的查询凭证查看材料、状态、复核说明与时间线。其他游客凭证无权访问，游客不能派单或结案。
@@ -62,7 +64,7 @@ uv run uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 --workers 1 --n
 | AI_TIMEOUT_SECONDS | 单次分析总超时，默认 60 秒 |
 | MAX_UPLOAD_BYTES | 单张上传上限，默认 10 MiB；另限 2000 万像素 |
 
-`data/events.sqlite3` 保存事件、私密明信片、会话哈希、上传绑定、时间线和分析版本；`data/images/` 保存去除元信息后的 JPEG。**重启不会清空数据。** 新增 postcards 表为兼容现有数据库的增量建表，不修改旧事件。备份时先停服务，复制整个 DATA_DIR（包括 SQLite WAL/SHM 如存在），恢复后使用相同版本启动。源码升级不能删除此目录。空库不会自动灌入业务记录。
+`data/events.sqlite3` 保存事件、私密明信片、会话哈希、上传绑定、时间线、分析版本及证据任务；`data/images/` 保存去除元信息后的 JPEG。**重启不会清空数据。** 本轮迁移至数据库版本2，旧版本1库升级前自动使用 SQLite backup 备份到 `DATA_DIR/backups/`，保留原材料和凭证。备份图片仍需停服务并复制完整 DATA_DIR（包括 WAL/SHM 如存在），恢复时使用匹配版本代码。源码升级不能删除此目录。空库不会自动灌入业务记录。
 
 图片展示 URL 是随机公开链接，持有链接可看图。游客凭证是单事件访问能力，仅创建时返回一次，不要放 URL 或日志。账号由全体演示管理员/工作人员共用，没有独立工作人员权限、密码找回或生产身份系统。暂不支持删除工单、未绑定图片自动清理和多进程部署。
 
@@ -92,6 +94,10 @@ frontend/src/features/journey/  沉浸式地图、景区、手记、回音和管
 frontend/src/components/       A：公共视觉
 frontend/public/assets/        独立生成的视觉素材与市级地图边界
 scripts/browser_smoke.mjs      真实浏览器与隔离服务的闭环验收
+scripts/live_upgrade_smoke.py  真实模型与升级浏览器闭环的独立验收
+frontend/src/features/ecoproof/        游客证据卡与共同回音
+frontend/src/features/ecoproof-admin/  管理员归并与整改核验
+backend/app/image_fingerprints.py     SHA-256 / dHash 指纹工具
 ```
 
 [团队任务索引](docs/团队任务/README.md) · [D 接入说明](docs/AI_INTEGRATION.md) · [C 交付记录](docs/DELIVERY.md)

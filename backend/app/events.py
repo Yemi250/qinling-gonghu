@@ -5,7 +5,8 @@ from uuid import uuid4
 
 from fastapi import APIRouter, Query, Request, Security
 
-from .db import encode, now
+from .cases import touch_case
+from .db import encode, materials_match, now
 from .errors import APIError
 from .models import Action, CreatedEvent, CreateEvent, Event, EventList, Overview, Status
 from .security import admin_scheme, digest, event_actor, require_admin, visitor_scheme
@@ -133,7 +134,7 @@ def list_events(
     db = request.app.state.db
     with db.connect() as conn:
         require_admin(request, conn)
-        clauses, values = [], []
+        clauses, values = ["merged_into IS NULL"], []
         for field, value in (
             ("status", status),
             ("point_id", point_id),
@@ -150,7 +151,7 @@ def list_events(
             [*values, limit, offset],
         ).fetchall()
         return {
-            "items": [db.event(conn, row["id"]) for row in rows],
+            "items": [db.event(conn, row["id"], admin=True) for row in rows],
             "total": total,
             "limit": limit,
             "offset": offset,
@@ -165,8 +166,8 @@ def list_events(
 def event_detail(event_id: str, request: Request):
     db = request.app.state.db
     with db.connect() as conn:
-        event_actor(request, conn, db.row(conn, event_id))
-        return db.event(conn, event_id)
+        actor = event_actor(request, conn, db.row(conn, event_id))
+        return db.event(conn, event_id, admin=actor == "admin")
 
 
 @router.post(
@@ -182,6 +183,13 @@ def take_action(event_id: str, body: Action, request: Request):
             require_admin(request, conn)
         row = db.row(conn, event_id)
         actor = event_actor(request, conn, row)
+        if row["merged_into"] and body.action != "supplement":
+            raise APIError(409, "linked_submission", "此线索已归并，请在主事件处理或撤销归并")
+        if row["merged_into"] and db.row(conn, row["merged_into"])["status"] in {
+            "closed",
+            "rejected",
+        }:
+            raise APIError(409, "case_finished", "关联事件已结束，请重新投稿")
         allowed, target = TRANSITIONS[body.action]
         if row["status"] not in allowed:
             raise APIError(409, "invalid_transition", "当前状态不允许此操作")
@@ -207,6 +215,7 @@ def take_action(event_id: str, body: Action, request: Request):
             changes["description"] = body.description or row["description"]
             changes["material_version"] = row["material_version"] + 1
             evidence = {"images": added, "description": changes["description"]}
+            touch_case(conn, row)
         if body.action == "submit_resolution":
             if not body.resolution_images or not row["assignee"]:
                 raise APIError(422, "resolution_required", "整改需要责任人、照片与说明")
@@ -219,7 +228,23 @@ def take_action(event_id: str, body: Action, request: Request):
             evidence = {"images": images, "note": body.note, "assignee": row["assignee"]}
         if body.action in {"close", "return", "reject"}:
             changes["review_note"] = body.note
-        changes.update(status=target, updated_at=now())
+        if body.action == "close":
+            latest = conn.execute(
+                "SELECT * FROM analyses WHERE event_id=? AND kind='resolution' "
+                "ORDER BY version DESC LIMIT 1",
+                (event_id,),
+            ).fetchone()
+            result = json.loads(latest["result"]) if latest and latest["result"] else {}
+            ai_assisted = (
+                latest
+                and latest["status"] == "succeeded"
+                and materials_match(json.loads(latest["input_snapshot"]), row, "resolution")
+                and result.get("suggestion") == "recommend_accept"
+                and not result.get("same_image")
+            )
+            evidence["acceptance_mode"] = "ai_assisted_manual" if ai_assisted else "manual"
+            evidence["analysis_id"] = latest["id"] if ai_assisted else None
+        changes.update(status=target, updated_at=now(), revision=row["revision"] + 1)
         assignments = ",".join(f"{key}=?" for key in changes)
         conn.execute(f"UPDATE events SET {assignments} WHERE id=?", [*changes.values(), event_id])
         db.timeline(
@@ -227,12 +252,14 @@ def take_action(event_id: str, body: Action, request: Request):
             event_id,
             body.action,
             actor,
-            body.note or body.description,
+            ("人工验收：" + body.note)
+            if body.action == "close" and evidence.get("acceptance_mode") == "manual"
+            else body.note or body.description,
             row["status"],
             target,
             evidence,
         )
-        return db.event(conn, event_id)
+        return db.event(conn, event_id, admin=actor == "admin")
 
 
 @router.get("/overview", response_model=Overview)
@@ -244,19 +271,27 @@ def overview(request: Request):
     end = start + timedelta(days=1)
     with db.connect() as conn:
         by_status = dict.fromkeys(Status, 0)
-        for row in conn.execute("SELECT status,COUNT(*) AS n FROM events GROUP BY status"):
+        for row in conn.execute(
+            "SELECT status,COUNT(*) AS n FROM events WHERE merged_into IS NULL GROUP BY status"
+        ):
             by_status[row["status"]] = row["n"]
         count = conn.execute(
             "SELECT COUNT(*) FROM events WHERE created_at>=? AND created_at<?",
             (start.astimezone(UTC).isoformat(), end.astimezone(UTC).isoformat()),
         ).fetchone()[0]
-        demo = conn.execute("SELECT COUNT(*) FROM events WHERE is_demo=1").fetchone()[0]
+        demo = conn.execute(
+            "SELECT COUNT(*) FROM events WHERE is_demo=1 AND merged_into IS NULL"
+        ).fetchone()[0]
         counts = {
             r["point_id"]: r["n"]
-            for r in conn.execute("SELECT point_id,COUNT(*) AS n FROM events GROUP BY point_id")
+            for r in conn.execute(
+                "SELECT point_id,COUNT(*) AS n FROM events "
+                "WHERE merged_into IS NULL GROUP BY point_id"
+            )
         }
         return {
             "total": sum(by_status.values()),
+            "submission_count": conn.execute("SELECT COUNT(*) FROM events").fetchone()[0],
             "today_count": count,
             "closed_count": by_status[Status.closed],
             "demo_count": demo,

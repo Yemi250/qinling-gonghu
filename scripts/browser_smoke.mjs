@@ -205,9 +205,9 @@ try {
   await admin.getByLabel("处理说明").fill("已完成清理，上传现场照片");
   await admin
     .getByLabel("处理后照片")
-    .setInputFiles(join(root, "frontend/public/assets/taibai.png"));
+    .setInputFiles(join(root, "frontend/public/assets/terracotta.png"));
   await admin.getByRole("button", { name: "提交整改与照片" }).click();
-  await admin.getByRole("button", { name: "AI 对比前后照片" }).click();
+  await admin.getByRole("button", { name: "发起 AI 核验" }).click();
   await admin
     .getByRole("button", { name: "人工验收并结案" })
     .waitFor({ state: "visible" });
@@ -383,11 +383,10 @@ try {
       .locator(".workbench-list>button")
       .filter({ hasText: `六景区共护验收：${chapter.name}` })
       .click();
-    assert.ok(
-      (await admin.locator(".record").textContent()).includes(
-        `${chapter.name}示范区`,
-      ),
-    );
+    const configuredPoint = (await json(await fetch(`${origin}/api/overview`)))
+      .points.find(p => p.id === chapter.point);
+    assert.ok(configuredPoint, "Chapter point must exist in the shared configuration");
+    await admin.locator(".record").getByText(configuredPoint.name, { exact: true }).waitFor();
     await recovered.goto(`${origin}/#/care/recover`);
     await recovered.getByLabel("完整记录编号").fill(current.id);
     await recovered.getByLabel("私密访问凭证").fill(current.token);
@@ -514,7 +513,7 @@ try {
   );
   console.log(`Evidence: ${evidence}`);
   console.log(
-    "This browser run deliberately has no API key. Real model acceptance runs separately with scripts.live_ai_smoke.",
+    "This browser run deliberately has no API key. Real upgrade acceptance runs separately with scripts.live_upgrade_smoke.",
   );
 } finally {
   await browser?.close();

@@ -3,6 +3,7 @@ import sqlite3
 from contextlib import contextmanager
 from datetime import UTC, datetime
 from pathlib import Path
+from uuid import uuid4
 
 from .errors import APIError
 
@@ -27,6 +28,9 @@ def materials_match(snapshot, event, kind) -> bool:
         if key.endswith("_images") and isinstance(current, str):
             current = json.loads(current)
         if snapshot[key] != current:
+            return False
+    if kind == "resolution" and "relationship_version" in snapshot:
+        if snapshot["relationship_version"] != event["relationship_version"]:
             return False
     return True
 
@@ -64,7 +68,25 @@ CREATE TABLE IF NOT EXISTS postcards (
  id TEXT PRIMARY KEY, token_hash TEXT NOT NULL, scenic_id TEXT NOT NULL,
  description TEXT NOT NULL, images TEXT NOT NULL, created_at TEXT NOT NULL
 );
-PRAGMA user_version=1;
+"""
+
+UPGRADE = """
+BEGIN IMMEDIATE;
+ALTER TABLE uploads ADD COLUMN dhash TEXT;
+ALTER TABLE events ADD COLUMN merged_into TEXT REFERENCES events(id);
+ALTER TABLE events ADD COLUMN relationship_version INTEGER NOT NULL DEFAULT 1;
+ALTER TABLE events ADD COLUMN revision INTEGER NOT NULL DEFAULT 1;
+CREATE INDEX events_parent ON events(merged_into);
+CREATE TABLE proof_runs (
+ id TEXT PRIMARY KEY, event_id TEXT NOT NULL REFERENCES events(id),
+ material_version INTEGER NOT NULL, relationship_version INTEGER NOT NULL,
+ status TEXT NOT NULL, model TEXT NOT NULL, started_at TEXT NOT NULL,
+ finished_at TEXT, steps TEXT NOT NULL, conclusion TEXT, error TEXT,
+ candidates TEXT NOT NULL DEFAULT '[]'
+);
+CREATE INDEX proofs_event ON proof_runs(event_id,started_at);
+PRAGMA user_version=2;
+COMMIT;
 """
 
 
@@ -75,17 +97,30 @@ class Database:
         self.images = self.data_dir / "images"
 
     def initialize(self):
+        """Initialize or upgrade with a consistent SQLite backup, retaining all old materials."""
         self.images.mkdir(parents=True, exist_ok=True)
         with self.connect() as conn:
             conn.execute("PRAGMA journal_mode=WAL")
             version = conn.execute("PRAGMA user_version").fetchone()[0]
-            if version not in (0, 1):
+            if version not in (0, 1, 2):
                 raise RuntimeError("不支持此数据库版本，请使用匹配版本的应用")
+            if version == 1:
+                backup_dir = self.data_dir / "backups"
+                backup_dir.mkdir(exist_ok=True)
+                with sqlite3.connect(backup_dir / f"before-v2-{uuid4().hex}.sqlite3") as backup:
+                    conn.backup(backup)
             conn.executescript(SCHEMA)
+            if version < 2:
+                conn.executescript(UPGRADE)
         with self.transaction() as conn:
             interrupted = conn.execute("SELECT * FROM analyses WHERE status='running'").fetchall()
             for run in interrupted:
                 self.fail_run(conn, run, "ai_interrupted", "上次分析因服务重启中断，请重试")
+            conn.execute(
+                "UPDATE proof_runs SET status='failed',finished_at=?,error=? "
+                "WHERE status='running'",
+                (now(), "上次证据分析因服务重启中断，材料已保存，请重试"),
+            )
 
     @contextmanager
     def connect(self):
@@ -142,7 +177,8 @@ class Database:
             {"analysis_id": run["id"]},
         )
 
-    def event(self, conn, event_id):
+    def event(self, conn, event_id, *, admin=False):
+        """Return scoped submission materials and a sanitized shared governance summary."""
         event = dict(self.row(conn, event_id))
         event.pop("token_hash")
         event["is_demo"] = bool(event["is_demo"])
@@ -164,7 +200,37 @@ class Database:
             for key in ("input_snapshot", "result", "error"):
                 item[key] = json.loads(item[key]) if item[key] else None
             item["stale"] = not materials_match(item["input_snapshot"], event, item["kind"])
+            if not admin and item["kind"] == "resolution":
+                own_ids = {i["id"] for i in event["original_images"]}
+                snapshot = item["input_snapshot"]
+                snapshot["original_images"] = [
+                    i for i in snapshot["original_images"] if i["id"] in own_ids
+                ]
+                snapshot.pop("group_images", None)
+                if item["result"] and "reviewed_images" in item["result"]:
+                    item["result"]["reviewed_images"] = [
+                        i for i in item["result"]["reviewed_images"] if i["id"] in own_ids
+                    ]
             event["analyses"].append(item)
             if not item["stale"]:
                 event["ai_status"][item["kind"]] = item["status"]
+        proof = conn.execute(
+            "SELECT * FROM proof_runs WHERE event_id=? ORDER BY started_at DESC LIMIT 1",
+            (event_id,),
+        ).fetchone()
+        event["proof"] = None
+        if proof:
+            item = dict(proof)
+            item.pop("event_id")
+            item.pop("candidates")
+            item["steps"] = json.loads(item["steps"])
+            item["conclusion"] = json.loads(item["conclusion"]) if item["conclusion"] else None
+            item["stale"] = (
+                item["material_version"] != event["material_version"]
+                or item.pop("relationship_version") != event["relationship_version"]
+            )
+            event["proof"] = item
+        from .cases import governance_summary
+
+        event["governance"] = governance_summary(conn, event)
         return event

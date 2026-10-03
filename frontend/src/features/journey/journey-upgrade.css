@@ -1,0 +1,16 @@
+/* Integration layout only; keep the approved atlas, navigation and scenic scale. */
+.care-evidence-stack { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+.care-evidence-stack .ecoproof, .workbench-layout .ecoproof { max-width: none; }
+.workbench-layout > section { min-width: 0; }
+.workbench-layout .ecoproof, .workbench-layout .ecoproof-panel { margin-bottom: 24px; }
+.case-materials { margin: 20px 0; padding: 20px; background: var(--bg-raised); border: 1px solid var(--rule-soft); border-radius: 8px; min-width: 0; overflow-wrap: anywhere; }
+.case-materials details { padding: 12px 0; }
+.case-materials summary { cursor: pointer; line-height: 1.8; }
+.case-photo-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding: 14px 0; }
+.case-photo-grid img { width: 100%; height: 180px; object-fit: cover; border-radius: 4px; }
+.case-review-frame { border: 0; padding: 0; margin: 20px 0; min-width: 0; }
+.care-timeline .ecoproof-share { margin: 20px 0; }
+@media (max-width: 480px) {
+  .case-photo-grid { grid-template-columns: minmax(0, 1fr); }
+  .case-materials { padding: 14px; }
+}

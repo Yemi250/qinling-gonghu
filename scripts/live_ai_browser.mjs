@@ -40,7 +40,7 @@ try {
   await page.goto(`${origin}/#/workbench`);
   await page.locator(".workbench-list>button").first().click();
   await page.getByText("AI 看到了什么", { exact: true }).waitFor();
-  const comparison = page.getByRole("heading", { name: "AI 整改对比意见" });
+  const comparison = page.getByText("未提供新的整改证据。", { exact: true });
   await comparison.waitFor();
   assert.ok((await comparison.locator("..").textContent()).trim());
   await page.screenshot({
@@ -49,7 +49,7 @@ try {
   });
   assert.deepEqual(errors, []);
   console.log(
-    "PASS: real report results survive reload; admin comparison result is displayed.",
+    "PASS: real reports survive reload; system same-image guard is displayed (no rectification model call).",
   );
 } finally {
   await browser.close();

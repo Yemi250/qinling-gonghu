@@ -1,0 +1,555 @@
+{
+  "started_at": "2026-10-03T09:31:38.828430+00:00",
+  "model": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+  "upstream_host": "api.siliconflow.cn",
+  "isolated_data": "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\gonghu-live-upgrade-npewgemr",
+  "fixture_notice": "AI-generated, visibly labeled simulation; not real incidents. Successful calls validate connectivity and workflow, not real-world accuracy.",
+  "proof_runs": [
+    {
+      "event_id": "4d3d1f54e7cd47c2a79578ecb627b56c",
+      "proof": {
+        "id": "ba9b8635ec124d2cabd511fbcf96eb42",
+        "status": "succeeded",
+        "material_version": 1,
+        "stale": false,
+        "model": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+        "started_at": "2026-10-03T09:31:39.145336+00:00",
+        "finished_at": "2026-10-03T09:32:02.732587+00:00",
+        "steps": [
+          {
+            "key": "material",
+            "state": "pass",
+            "message": "图片已保存，点位配置有效",
+            "evidence": [
+              {
+                "label": "照片",
+                "value": "1 张已保存图片",
+                "source": "system"
+              },
+              {
+                "label": "点位来源",
+                "value": "trail-entrance",
+                "source": "visitor"
+              },
+              {
+                "label": "时间来源",
+                "value": "服务端收到投稿：2026-10-03T09:31:39.114756+00:00",
+                "source": "system"
+              },
+              {
+                "label": "无法确认",
+                "value": "未验证拍摄地点、拍摄时间或照片真实性",
+                "source": "system"
+              }
+            ]
+          },
+          {
+            "key": "content",
+            "state": "pass",
+            "message": "入口休息区垃圾桶旁地面上散落着塑料瓶、食品包装袋等垃圾。",
+            "evidence": [
+              {
+                "label": "可见类别",
+                "value": "litter",
+                "source": "model"
+              },
+              {
+                "label": "可见依据",
+                "value": "石凳",
+                "source": "model"
+              },
+              {
+                "label": "可见依据",
+                "value": "垃圾桶",
+                "source": "model"
+              },
+              {
+                "label": "可见依据",
+                "value": "木制围栏",
+                "source": "model"
+              },
+              {
+                "label": "可见依据",
+                "value": "散落的垃圾，包括塑料瓶、食品包装袋、纸杯等",
+                "source": "model"
+              }
+            ]
+          },
+          {
+            "key": "association",
+            "state": "pass",
+            "message": "未找到符合范围的关联候选",
+            "evidence": [
+              {
+                "label": "比对范围",
+                "value": "同景区、同点位、同演示属性，最近投稿在2小时内",
+                "source": "system"
+              },
+              {
+                "label": "重复照片",
+                "value": "不增加独立人数",
+                "source": "system"
+              }
+            ]
+          },
+          {
+            "key": "decision",
+            "state": "pass",
+            "message": "存在可见环境线索，建议景区审核并安排处理。",
+            "evidence": [
+              {
+                "label": "建议部门",
+                "value": "保洁队",
+                "source": "model"
+              }
+            ]
+          }
+        ],
+        "conclusion": {
+          "kind": "process",
+          "reason": "存在可见环境线索，建议景区审核并安排处理。"
+        },
+        "error": null
+      },
+      "analyses": [
+        {
+          "id": "fdb04ed4a06541928d89ccebf8bf716d",
+          "version": 1,
+          "kind": "report",
+          "material_version": 1,
+          "status": "succeeded",
+          "model": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+          "started_at": "2026-10-03T09:31:39.194817+00:00",
+          "finished_at": "2026-10-03T09:32:02.641857+00:00",
+          "stale": false,
+          "input_snapshot": {
+            "original_images": [
+              {
+                "id": "70d452baa1ed4f22acdd316cc7517061",
+                "url": "/api/images/70d452baa1ed4f22acdd316cc7517061",
+                "content_type": "image/jpeg",
+                "size": 524164
+              }
+            ],
+            "resolution_images": [],
+            "description": "模拟演示：入口休息区垃圾桶旁有散落垃圾。",
+            "point_id": "trail-entrance",
+            "resolution_note": ""
+          },
+          "result": {
+            "title": "入口休息区垃圾散落",
+            "summary": "入口休息区垃圾桶旁地面上散落着塑料瓶、食品包装袋等垃圾。",
+            "category": "litter",
+            "visible_observations": [
+              "石凳",
+              "垃圾桶",
+              "木制围栏",
+              "散落的垃圾，包括塑料瓶、食品包装袋、纸杯等"
+            ],
+            "missing_information": [],
+            "follow_up_questions": [],
+            "recommendations": [
+              "安排保洁清运垃圾",
+              "图片左上角标注为‘模拟演示·非真实事件’，此场景可能为模拟，非真实发生的环境问题。",
+              "无法确认照片拍摄地点是否为秦岭示范步道·入口，仅根据游客描述和图片内容进行分析。"
+            ],
+            "suggested_department": "保洁队",
+            "verdict": "ok"
+          },
+          "error": null
+        }
+      ],
+      "merged_into": null
+    },
+    {
+      "event_id": "4439b20eeab7402b879b5175c3c1a449",
+      "proof": {
+        "id": "93a6d76705f4428598ea1e52ca81ae49",
+        "status": "succeeded",
+        "material_version": 1,
+        "stale": false,
+        "model": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+        "started_at": "2026-10-03T09:32:03.019497+00:00",
+        "finished_at": "2026-10-03T09:32:49.091810+00:00",
+        "steps": [
+          {
+            "key": "material",
+            "state": "pass",
+            "message": "图片已保存，点位配置有效",
+            "evidence": [
+              {
+                "label": "照片",
+                "value": "1 张已保存图片",
+                "source": "system"
+              },
+              {
+                "label": "点位来源",
+                "value": "trail-entrance",
+                "source": "visitor"
+              },
+              {
+                "label": "时间来源",
+                "value": "服务端收到投稿：2026-10-03T09:32:03.005955+00:00",
+                "source": "system"
+              },
+              {
+                "label": "无法确认",
+                "value": "未验证拍摄地点、拍摄时间或照片真实性",
+                "source": "system"
+              }
+            ]
+          },
+          {
+            "key": "content",
+            "state": "pass",
+            "message": "垃圾桶周围地面上散落大量垃圾，包括塑料瓶、食品包装和纸杯等。",
+            "evidence": [
+              {
+                "label": "可见类别",
+                "value": "waste_pile",
+                "source": "model"
+              },
+              {
+                "label": "可见依据",
+                "value": "垃圾桶",
+                "source": "model"
+              },
+              {
+                "label": "可见依据",
+                "value": "石凳",
+                "source": "model"
+              },
+              {
+                "label": "可见依据",
+                "value": "木制护栏",
+                "source": "model"
+              },
+              {
+                "label": "可见依据",
+                "value": "垃圾堆积",
+                "source": "model"
+              },
+              {
+                "label": "可见依据",
+                "value": "塑料瓶",
+                "source": "model"
+              },
+              {
+                "label": "可见依据",
+                "value": "食品包装",
+                "source": "model"
+              },
+              {
+                "label": "可见依据",
+                "value": "纸杯",
+                "source": "model"
+              },
+              {
+                "label": "可见依据",
+                "value": "纸巾",
+                "source": "model"
+              }
+            ]
+          },
+          {
+            "key": "association",
+            "state": "attention",
+            "message": "找到 1 件候选，等待管理员确认",
+            "evidence": [
+              {
+                "label": "比对范围",
+                "value": "同景区、同点位、同演示属性，最近投稿在2小时内",
+                "source": "system"
+              },
+              {
+                "label": "重复照片",
+                "value": "不增加独立人数",
+                "source": "system"
+              }
+            ]
+          },
+          {
+            "key": "decision",
+            "state": "pass",
+            "message": "存在可能关联的线索，请管理员查看依据后确认归并。",
+            "evidence": [
+              {
+                "label": "建议部门",
+                "value": "保洁队",
+                "source": "model"
+              }
+            ]
+          }
+        ],
+        "conclusion": {
+          "kind": "merge",
+          "reason": "存在可能关联的线索，请管理员查看依据后确认归并。"
+        },
+        "error": null
+      },
+      "analyses": [
+        {
+          "id": "1ea57d0ae63a459688116c6743ce2804",
+          "version": 1,
+          "kind": "report",
+          "material_version": 1,
+          "status": "succeeded",
+          "model": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+          "started_at": "2026-10-03T09:32:03.070990+00:00",
+          "finished_at": "2026-10-03T09:32:48.958277+00:00",
+          "stale": false,
+          "input_snapshot": {
+            "original_images": [
+              {
+                "id": "f4749dc1867245cb8934d818a9042f6b",
+                "url": "/api/images/f4749dc1867245cb8934d818a9042f6b",
+                "content_type": "image/jpeg",
+                "size": 524164
+              }
+            ],
+            "resolution_images": [],
+            "description": "模拟演示：同一张照片再次投稿，用于重复线索测试。",
+            "point_id": "trail-entrance",
+            "resolution_note": ""
+          },
+          "result": {
+            "title": "垃圾桶旁垃圾堆积",
+            "summary": "垃圾桶周围地面上散落大量垃圾，包括塑料瓶、食品包装和纸杯等。",
+            "category": "waste_pile",
+            "visible_observations": [
+              "垃圾桶",
+              "石凳",
+              "木制护栏",
+              "垃圾堆积",
+              "塑料瓶",
+              "食品包装",
+              "纸杯",
+              "纸巾"
+            ],
+            "missing_information": [],
+            "follow_up_questions": [],
+            "recommendations": [
+              "安排保洁人员清运垃圾",
+              "图片左上角标注为‘模拟演示·非真实事件’，该场景可能为测试用例，非真实环境问题。"
+            ],
+            "suggested_department": "保洁队",
+            "verdict": "ok"
+          },
+          "error": null
+        }
+      ],
+      "merged_into": null
+    }
+  ],
+  "passed": true,
+  "duplicate_automatically_merged": false,
+  "rectification": {
+    "id": "29f600621a49455f9e80fe2012a35bdb",
+    "version": 2,
+    "kind": "resolution",
+    "material_version": 2,
+    "status": "succeeded",
+    "model": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+    "started_at": "2026-10-03T09:34:01.735475+00:00",
+    "finished_at": "2026-10-03T09:34:32.509466+00:00",
+    "stale": false,
+    "input_snapshot": {
+      "original_images": [
+        {
+          "id": "70d452baa1ed4f22acdd316cc7517061",
+          "url": "/api/images/70d452baa1ed4f22acdd316cc7517061",
+          "content_type": "image/jpeg",
+          "size": 524164
+        }
+      ],
+      "resolution_images": [
+        {
+          "id": "6686c996f3a94ea89dc140abfceff7b2",
+          "url": "/api/images/6686c996f3a94ea89dc140abfceff7b2",
+          "content_type": "image/jpeg",
+          "size": 485677
+        }
+      ],
+      "description": "模拟演示：入口休息区垃圾桶旁有散落垃圾。",
+      "point_id": "trail-entrance",
+      "resolution_note": "模拟场景：提交同机位清理后的测试照片。",
+      "group_images": [
+        {
+          "id": "70d452baa1ed4f22acdd316cc7517061",
+          "url": "/api/images/70d452baa1ed4f22acdd316cc7517061",
+          "content_type": "image/jpeg",
+          "size": 524164
+        },
+        {
+          "id": "9184d3cac6e24c68a8dc4186efc6f316",
+          "url": "/api/images/9184d3cac6e24c68a8dc4186efc6f316",
+          "content_type": "image/jpeg",
+          "size": 590994
+        }
+      ],
+      "relationship_version": 3
+    },
+    "result": {
+      "visible_changes": [
+        "地面上的垃圾被清理",
+        "石凳、木栏杆、垃圾桶周围无散落废弃物"
+      ],
+      "remaining_issues": [],
+      "uncertainties": [],
+      "acceptance_recommendation": "整改后地面上的垃圾已被清理，现场环境整洁。",
+      "suggestion": "recommend_accept",
+      "same_image": false,
+      "reviewed_images": [
+        {
+          "id": "70d452baa1ed4f22acdd316cc7517061",
+          "url": "/api/images/70d452baa1ed4f22acdd316cc7517061",
+          "content_type": "image/jpeg",
+          "size": 524164
+        },
+        {
+          "id": "9184d3cac6e24c68a8dc4186efc6f316",
+          "url": "/api/images/9184d3cac6e24c68a8dc4186efc6f316",
+          "content_type": "image/jpeg",
+          "size": 590994
+        }
+      ],
+      "before_total": 2
+    },
+    "error": null
+  },
+  "same_image_guard": {
+    "id": "e9d2c61438d243149d341cf29350e986",
+    "version": 1,
+    "kind": "resolution",
+    "material_version": 2,
+    "status": "succeeded",
+    "model": "system:sha256",
+    "started_at": "2026-10-03T09:34:39.518368+00:00",
+    "finished_at": "2026-10-03T09:34:39.532026+00:00",
+    "stale": false,
+    "input_snapshot": {
+      "original_images": [
+        {
+          "id": "cb27af70c5674b558f74d546df3bcd36",
+          "url": "/api/images/cb27af70c5674b558f74d546df3bcd36",
+          "content_type": "image/jpeg",
+          "size": 524164
+        }
+      ],
+      "resolution_images": [
+        {
+          "id": "ad4ab032888847b0a150ec5e0935ddc0",
+          "url": "/api/images/ad4ab032888847b0a150ec5e0935ddc0",
+          "content_type": "image/jpeg",
+          "size": 524164
+        }
+      ],
+      "description": "模拟演示：同图整改检查的隔离负例。",
+      "point_id": "trail-entrance",
+      "resolution_note": "负例：未提交新的整改证据。",
+      "group_images": [
+        {
+          "id": "cb27af70c5674b558f74d546df3bcd36",
+          "url": "/api/images/cb27af70c5674b558f74d546df3bcd36",
+          "content_type": "image/jpeg",
+          "size": 524164
+        }
+      ],
+      "relationship_version": 1
+    },
+    "result": {
+      "visible_changes": [],
+      "remaining_issues": [],
+      "uncertainties": [
+        "整改照片与整改前照片完全重复，未提供新的整改证据"
+      ],
+      "acceptance_recommendation": "无法依据重复照片确认整改，请补充新照片或人工现场验收。",
+      "suggestion": "need_human",
+      "same_image": true,
+      "reviewed_images": [],
+      "before_total": 1
+    },
+    "error": null
+  },
+  "browser_verified": true,
+  "fixtures": [
+    {
+      "file": "litter-after.png",
+      "sha256": "be73bff9beb6aabc4bb800d2a12f3e243ba1a58f244baa3da21dd0529babc65d"
+    },
+    {
+      "file": "litter-angle.png",
+      "sha256": "35ecb8885d76e7aa7222bf2541b9f31c8d03d47544a92fee1de7e8f621d20bf6"
+    },
+    {
+      "file": "litter-before.png",
+      "sha256": "d80ffe45719661aa9d1b9abdf5cf041bcb1bf3b031b145eec46cc26f6fb2f033"
+    }
+  ],
+  "finished_at": "2026-10-03T09:34:39.555312+00:00",
+  "upstream_calls": [
+    {
+      "ts": "2026-10-03T09:32:02.638512+00:00",
+      "op": "analyze_report",
+      "model": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+      "ok": true,
+      "latency_ms": 23421,
+      "attempt": 1,
+      "images": 1
+    },
+    {
+      "ts": "2026-10-03T09:32:48.954095+00:00",
+      "op": "analyze_report",
+      "model": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+      "ok": true,
+      "latency_ms": 45859,
+      "attempt": 1,
+      "images": 1
+    },
+    {
+      "ts": "2026-10-03T09:33:01.221952+00:00",
+      "op": "analyze_report",
+      "model": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+      "ok": false,
+      "latency_ms": 10703,
+      "error": "network",
+      "images": 1
+    },
+    {
+      "ts": "2026-10-03T09:33:12.421581+00:00",
+      "op": "analyze_report",
+      "model": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+      "ok": false,
+      "latency_ms": 10718,
+      "error": "network",
+      "images": 1
+    },
+    {
+      "ts": "2026-10-03T09:33:31.993723+00:00",
+      "op": "analyze_report",
+      "model": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+      "ok": true,
+      "latency_ms": 19093,
+      "attempt": 1,
+      "images": 1
+    },
+    {
+      "ts": "2026-10-03T09:33:58.458448+00:00",
+      "op": "compare_reports",
+      "model": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+      "ok": true,
+      "latency_ms": 26359,
+      "attempt": 1,
+      "images": 2
+    },
+    {
+      "ts": "2026-10-03T09:34:32.508031+00:00",
+      "op": "review_resolution",
+      "model": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+      "ok": true,
+      "latency_ms": 30750,
+      "attempt": 1,
+      "images": 3
+    }
+  ]
+}

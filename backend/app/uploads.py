@@ -64,7 +64,9 @@ async def upload(request: Request, file: UploadFile):
                 "SELECT 1 FROM uploads WHERE sha256=? LIMIT 1", (sha,)
             ).fetchone()
             conn.execute(
-                "INSERT INTO uploads VALUES(?,?,?,?,?,?,NULL,?)",
+                "INSERT INTO uploads(id,path,content_type,size,sha256,token_hash,"
+                "event_id,created_at) "
+                "VALUES(?,?,?,?,?,?,NULL,?)",
                 (image_id, path.name, "image/jpeg", len(encoded), sha, digest(token), now()),
             )
     except BaseException:

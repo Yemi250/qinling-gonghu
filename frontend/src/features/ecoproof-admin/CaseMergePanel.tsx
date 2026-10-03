@@ -62,7 +62,7 @@ export function CaseMergePanel({
           线索归并
         </h3>
         <p className="ecoproof-hint">
-          同一点位完全重复的照片已由系统自动合并；这里的候选，是模型对“不同照片、疑似同一问题”的判断，需要管理员逐条核对后确认。
+          同一点位近期完全重复、且符合处置条件的照片可由系统归并；不同照片的关联建议，需要管理员对照材料后确认。
         </p>
       </header>
 
@@ -124,7 +124,7 @@ export function CaseMergePanel({
 
       {candidates.length === 0 ? (
         <div className="ecoproof-empty">
-          <p>暂无归并候选。目前没有模型认为与这条线索相关的其他上报。</p>
+          <p>暂无可供确认的归并候选。已关联的投稿仍保留原始材料和记录。</p>
         </div>
       ) : (
         <>
@@ -219,7 +219,7 @@ function CandidateCard({
           {c.pointName} · {formatTime(c.createdAt)} 上报
         </span>
         <span className="ecoproof-meta">
-          游客提交 {c.submissionCount} 次 · 独立照片 {c.uniqueImageCount} 张 ·
+          关联投稿 {c.submissionCount} 次 · 不同图片 {c.uniqueImageCount} 张 ·
           拟并入 <code className="ecoproof-code">{eventCode(c.id)}</code>
         </span>
       </label>

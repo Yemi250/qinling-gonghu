@@ -69,7 +69,7 @@ def test_retry_versions_and_resolution_never_auto_close(client):
         manager,
         "submit_resolution",
         note="已清理",
-        resolution_images=[upload(client)],
+        resolution_images=[upload(client, "blue")],
     )
     assert client.post(url, headers=visitor, json={"kind": "resolution"}).status_code == 401
     response = client.post(url, headers=manager, json={"kind": "resolution"})

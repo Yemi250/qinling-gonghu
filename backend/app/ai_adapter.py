@@ -51,3 +51,15 @@ class ModuleAI:
             resolution_note=resolution_note,
             config=config,
         )
+
+    async def compare_reports(
+        self, *, source_photos, target_photos, source_description, target_description, config
+    ):
+        """Delegate semantic candidate comparison without mutating governance state."""
+        return await self.provider().compare_reports(
+            source_photos=source_photos,
+            target_photos=target_photos,
+            source_description=source_description,
+            target_description=target_description,
+            config=config,
+        )

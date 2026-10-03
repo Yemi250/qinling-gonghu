@@ -1,0 +1,302 @@
+{
+  "checks": [
+    "Browser starts and polls real persisted proof; different photo stays unmerged",
+    "Administrator explicitly merges, assigns, submits new photo, runs real VLM review, and closes with a note",
+    "All three original private receipts survive merge and receive shared closure after reload"
+  ],
+  "widths": [
+    {
+      "route": "care/c63a4e0f4fb74bc2a8302a99959c2921",
+      "viewport": 320,
+      "body": 320
+    },
+    {
+      "route": "workbench",
+      "viewport": 320,
+      "body": 320
+    },
+    {
+      "route": "care/c63a4e0f4fb74bc2a8302a99959c2921",
+      "viewport": 390,
+      "body": 390
+    },
+    {
+      "route": "workbench",
+      "viewport": 390,
+      "body": 390
+    },
+    {
+      "route": "care/c63a4e0f4fb74bc2a8302a99959c2921",
+      "viewport": 768,
+      "body": 768
+    },
+    {
+      "route": "workbench",
+      "viewport": 768,
+      "body": 768
+    },
+    {
+      "route": "care/c63a4e0f4fb74bc2a8302a99959c2921",
+      "viewport": 1440,
+      "body": 1440
+    },
+    {
+      "route": "workbench",
+      "viewport": 1440,
+      "body": 1440
+    },
+    {
+      "route": "care/c63a4e0f4fb74bc2a8302a99959c2921",
+      "viewport": 2048,
+      "body": 2048
+    },
+    {
+      "route": "workbench",
+      "viewport": 2048,
+      "body": 2048
+    }
+  ],
+  "passed": true,
+  "proofAttempts": [
+    {
+      "id": "9d988c4354b543479f6002ab1a098b03",
+      "status": "failed",
+      "material_version": 1,
+      "stale": false,
+      "model": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+      "started_at": "2026-10-03T09:32:50.446027+00:00",
+      "finished_at": "2026-10-03T09:33:01.256224+00:00",
+      "steps": [
+        {
+          "key": "material",
+          "state": "pass",
+          "message": "图片已保存，点位配置有效",
+          "evidence": [
+            {
+              "label": "照片",
+              "value": "1 张已保存图片",
+              "source": "system"
+            },
+            {
+              "label": "点位来源",
+              "value": "trail-entrance",
+              "source": "visitor"
+            },
+            {
+              "label": "时间来源",
+              "value": "服务端收到投稿：2026-10-03T09:32:49.470760+00:00",
+              "source": "system"
+            },
+            {
+              "label": "无法确认",
+              "value": "未验证拍摄地点、拍摄时间或照片真实性",
+              "source": "system"
+            }
+          ]
+        },
+        {
+          "key": "content",
+          "state": "failed",
+          "message": "AI 调用失败，材料已保存，可重试或人工处理",
+          "evidence": []
+        },
+        {
+          "key": "association",
+          "state": "idle",
+          "message": "",
+          "evidence": []
+        },
+        {
+          "key": "decision",
+          "state": "idle",
+          "message": "",
+          "evidence": []
+        }
+      ],
+      "conclusion": null,
+      "error": "AI 调用失败，材料已保存，可重试或人工处理"
+    },
+    {
+      "id": "df52b4343ce34487badefac24c683297",
+      "status": "failed",
+      "material_version": 1,
+      "stale": false,
+      "model": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+      "started_at": "2026-10-03T09:33:01.630559+00:00",
+      "finished_at": "2026-10-03T09:33:12.447804+00:00",
+      "steps": [
+        {
+          "key": "material",
+          "state": "pass",
+          "message": "图片已保存，点位配置有效",
+          "evidence": [
+            {
+              "label": "照片",
+              "value": "1 张已保存图片",
+              "source": "system"
+            },
+            {
+              "label": "点位来源",
+              "value": "trail-entrance",
+              "source": "visitor"
+            },
+            {
+              "label": "时间来源",
+              "value": "服务端收到投稿：2026-10-03T09:32:49.470760+00:00",
+              "source": "system"
+            },
+            {
+              "label": "无法确认",
+              "value": "未验证拍摄地点、拍摄时间或照片真实性",
+              "source": "system"
+            }
+          ]
+        },
+        {
+          "key": "content",
+          "state": "failed",
+          "message": "AI 调用失败，材料已保存，可重试或人工处理",
+          "evidence": []
+        },
+        {
+          "key": "association",
+          "state": "idle",
+          "message": "",
+          "evidence": []
+        },
+        {
+          "key": "decision",
+          "state": "idle",
+          "message": "",
+          "evidence": []
+        }
+      ],
+      "conclusion": null,
+      "error": "AI 调用失败，材料已保存，可重试或人工处理"
+    },
+    {
+      "id": "250dcb4705554254b8b377624a14c995",
+      "status": "succeeded",
+      "material_version": 1,
+      "stale": false,
+      "model": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+      "started_at": "2026-10-03T09:33:12.845936+00:00",
+      "finished_at": "2026-10-03T09:33:58.529663+00:00",
+      "steps": [
+        {
+          "key": "material",
+          "state": "pass",
+          "message": "图片已保存，点位配置有效",
+          "evidence": [
+            {
+              "label": "照片",
+              "value": "1 张已保存图片",
+              "source": "system"
+            },
+            {
+              "label": "点位来源",
+              "value": "trail-entrance",
+              "source": "visitor"
+            },
+            {
+              "label": "时间来源",
+              "value": "服务端收到投稿：2026-10-03T09:32:49.470760+00:00",
+              "source": "system"
+            },
+            {
+              "label": "无法确认",
+              "value": "未验证拍摄地点、拍摄时间或照片真实性",
+              "source": "system"
+            }
+          ]
+        },
+        {
+          "key": "content",
+          "state": "pass",
+          "message": "休息区石凳旁地面上散落着塑料瓶、食品包装等垃圾，垃圾桶未见满溢。",
+          "evidence": [
+            {
+              "label": "可见类别",
+              "value": "litter",
+              "source": "model"
+            },
+            {
+              "label": "可见依据",
+              "value": "石凳",
+              "source": "model"
+            },
+            {
+              "label": "可见依据",
+              "value": "垃圾桶",
+              "source": "model"
+            },
+            {
+              "label": "可见依据",
+              "value": "散落的塑料瓶",
+              "source": "model"
+            },
+            {
+              "label": "可见依据",
+              "value": "食品包装袋",
+              "source": "model"
+            },
+            {
+              "label": "可见依据",
+              "value": "纸杯",
+              "source": "model"
+            },
+            {
+              "label": "可见依据",
+              "value": "石板地面",
+              "source": "model"
+            },
+            {
+              "label": "可见依据",
+              "value": "木制护栏",
+              "source": "model"
+            },
+            {
+              "label": "可见依据",
+              "value": "远处山景",
+              "source": "model"
+            }
+          ]
+        },
+        {
+          "key": "association",
+          "state": "attention",
+          "message": "找到 1 件候选，等待管理员确认",
+          "evidence": [
+            {
+              "label": "比对范围",
+              "value": "同景区、同点位、同演示属性，最近投稿在2小时内",
+              "source": "system"
+            },
+            {
+              "label": "重复照片",
+              "value": "不增加独立人数",
+              "source": "system"
+            }
+          ]
+        },
+        {
+          "key": "decision",
+          "state": "pass",
+          "message": "存在可能关联的线索，请管理员查看依据后确认归并。",
+          "evidence": [
+            {
+              "label": "建议部门",
+              "value": "保洁队",
+              "source": "model"
+            }
+          ]
+        }
+      ],
+      "conclusion": {
+        "kind": "merge",
+        "reason": "存在可能关联的线索，请管理员查看依据后确认归并。"
+      },
+      "error": null
+    }
+  ]
+}

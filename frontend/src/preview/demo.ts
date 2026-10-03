@@ -26,6 +26,8 @@ export const DEMO_POINTS: Point[] = [
 export const DEMO_STATS = { reported: 12, processing: 3, closed: 8, demo: 12 }
 
 export const DEMO_EVENT: Event = {
+  revision: 1,
+  relationship_version: 1,
   id: 'a3f29c1b7e4d4c0b9f1e2d3c4b5a6978',
   scenic_id: 'taibai-demo',
   point_id: 'xiabansi',

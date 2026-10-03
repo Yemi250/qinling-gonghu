@@ -1,3 +1,4 @@
+import asyncio
 from collections import defaultdict
 from contextlib import asynccontextmanager
 from time import monotonic
@@ -7,7 +8,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse, Response
 from starlette.exceptions import HTTPException
 
-from . import analysis, events, postcards, uploads
+from . import analysis, events, postcards, proof, uploads
 from .ai_adapter import ModuleAI
 from .config import Settings
 from .db import Database
@@ -25,6 +26,11 @@ def create_app(settings: Settings | None = None, ai=None) -> FastAPI:
     async def lifespan(app):
         db.initialize()
         yield
+        tasks = list(app.state.proof_tasks)
+        for task in tasks:
+            task.cancel()
+        if tasks:
+            await asyncio.gather(*tasks, return_exceptions=True)
 
     app = FastAPI(
         title="秦岭共护 API",
@@ -36,6 +42,8 @@ def create_app(settings: Settings | None = None, ai=None) -> FastAPI:
         },
     )
     app.state.settings, app.state.db, app.state.ai = settings, db, ai or ModuleAI()
+    app.state.proof_tasks = set()
+    app.state.proof_locks = {}
     login_attempts = defaultdict(list)
 
     @app.exception_handler(APIError)
@@ -155,6 +163,7 @@ def create_app(settings: Settings | None = None, ai=None) -> FastAPI:
     app.include_router(events.router, prefix="/api")
     app.include_router(analysis.router, prefix="/api")
     app.include_router(postcards.router, prefix="/api")
+    app.include_router(proof.router, prefix="/api")
 
     @app.get("/{path:path}", include_in_schema=False)
     def frontend(path: str):

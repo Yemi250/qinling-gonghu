@@ -37,12 +37,14 @@
 
 ## 查询与总览（事件）
 
-六景区点位：兵马俑 `terracotta-entry` / `terracotta-rest`；太白山沿用 `trail-entrance` / `rest-area`；其余四景区各为 `<slug>-entry` / `<slug>-rest`，slug 对应 `huashan`、`baotashan`、`hanzhong`、`zhenbeitai`。事件创建必须同时匹配景区与点位；`planned` 仍仅作规划展示。现有路径、历史数据与凭证兼容，数据库无需结构迁移。
+六景区点位：兵马俑 `terracotta-entry` / `terracotta-rest`；太白山沿用 `trail-entrance` / `rest-area`；其余四景区各为 `<slug>-entry` / `<slug>-rest`，slug 对应 `huashan`、`baotashan`、`hanzhong`、`zhenbeitai`。事件创建必须同时匹配景区与点位；`planned` 仍仅作规划展示。现有路径、历史数据与凭证兼容；本轮证据分析与归并使用版本2增量迁移，具体见 [EcoProof升级契约](EcoProof升级契约.md)。
 
 - `GET /api/events`：仅管理员；可选 `status`、`point_id`、`assignee`、`is_demo`、`limit`（1—100）、`offset`，返回 `{items,total,limit,offset}`。
 - `GET /api/events/{id}`：管理员或该事件游客凭证。返回 Event：`id, scenic_id, point_id, description, original_images, status, assignee, resolution_images, resolution_note, review_note, is_demo, material_version, created_at, updated_at, timeline, analyses, ai_status`。
 - `GET /api/overview`：公开聚合 `{total,today_count,closed_count,by_status,demo_count,points}`；today_count 按 Asia/Shanghai 日期。点位包含示范/规划标签及实际 event_count，不返回事件详情。
 - `GET /api/health`：就绪状态、版本和是否构建前端，不包含配置秘密。
+
+本轮 Event 追加 `revision, relationship_version, merged_into, proof, governance`。事件列表与总览的治理统计按主事件计算；`overview.submission_count` 统计全部投稿，`today_count` 继续统计当天投稿。游客只收到自己的材料和共同治理摘要，候选及其他投稿材料仅管理员可读。归并后原凭证有效，处理在主事件上进行。
 
 ## 动作
 
@@ -61,6 +63,8 @@
 `needs_info/待补充`、`pending_review/待审核`、`processing/处理中`、`pending_acceptance/待验收`、`closed/已结案`、`rejected/已驳回`。禁止跳状态，已结束不可再改。返工保留历史整改证据，当前整改图在新提交时替换；时间线保留每次图片及说明。
 
 ## AI 集成与失败恢复
+
+新增 `POST /api/events/{id}/proof` 返回202并持久化四阶段任务；`GET /api/events/{id}` 读取实际阶段、建议与过期状态。新增管理员专用 `/associations`、`/merge`、`/unmerge`，使用记录/关系版本防止覆盖新结果。完整请求与规则见 [EcoProof升级契约](EcoProof升级契约.md)。整改对比保留原 `/analysis` 路径，结果增加 suggestion、same_image、reviewed_images、before_total；同图检查记录为 `system:sha256` 而非模型调用。关联变化也会使旧整改核验过期。
 
 `POST /api/events/{id}/analysis`：`{"kind":"report"}` 或 `{"kind":"resolution"}`。请求等待一次分析结束；客户端超时后先 GET 事件，避免盲目重发。
 

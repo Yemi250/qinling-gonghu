@@ -7,6 +7,7 @@ from fastapi import APIRouter, Request, Security
 from pydantic import ValidationError
 
 from .ai_adapter import AIConfig
+from .cases import group_rows, image_digests, review_materials
 from .db import encode, materials_match, now
 from .errors import APIError
 from .events import POINTS
@@ -28,7 +29,15 @@ async def analyze(event_id: str, body: AnalyzeRequest, request: Request):
         if kind == "resolution":
             require_admin(request, conn)
         row = db.row(conn, event_id)
-        event_actor(request, conn, row)
+        actor = event_actor(request, conn, row)
+        if row["merged_into"]:
+            raise APIError(409, "linked_submission", "此线索已归并，请在主事件进行核验")
+        if kind == "report":
+            proof = conn.execute(
+                "SELECT id FROM proof_runs WHERE event_id=? AND status='running'", (event_id,)
+            ).fetchone()
+            if proof and getattr(request.state, "proof_run_id", None) != proof["id"]:
+                raise APIError(409, "proof_running", "证据分析正在执行，请稍后读取结果")
         allowed = {"needs_info", "pending_review"} if kind == "report" else {"pending_acceptance"}
         if row["status"] not in allowed:
             raise APIError(409, "invalid_analysis_state", "当前状态不允许此类分析")
@@ -51,10 +60,27 @@ async def analyze(event_id: str, body: AnalyzeRequest, request: Request):
             "point_id": row["point_id"],
             "resolution_note": row["resolution_note"],
         }
+        same_image = False
+        before_total = len(snapshot["original_images"])
+        if kind == "resolution":
+            selected, before_total = review_materials(conn, row)
+            snapshot["group_images"] = selected
+            snapshot["relationship_version"] = row["relationship_version"]
+            before_hashes = {u["sha256"] for _, u in image_digests(conn, group_rows(conn, row))}
+            after_hashes = {
+                conn.execute("SELECT sha256 FROM uploads WHERE id=?", (i["id"],)).fetchone()[0]
+                for i in snapshot["resolution_images"]
+            }
+            same_image = bool(after_hashes) and after_hashes <= before_hashes
         paths = {}
         for key in ("original_images", "resolution_images"):
             paths[key] = []
-            for image in snapshot[key]:
+            selected_images = (
+                snapshot.get("group_images", snapshot[key])
+                if key == "original_images"
+                else snapshot[key]
+            )
+            for image in selected_images:
                 stored = conn.execute(
                     "SELECT path FROM uploads WHERE id=?", (image["id"],)
                 ).fetchone()
@@ -75,7 +101,7 @@ async def analyze(event_id: str, body: AnalyzeRequest, request: Request):
                 version,
                 kind,
                 material_version,
-                settings.ai_model,
+                "system:sha256" if same_image else settings.ai_model,
                 now(),
                 encode(snapshot),
             ),
@@ -111,13 +137,30 @@ async def analyze(event_id: str, body: AnalyzeRequest, request: Request):
                 )
                 result = ReportResult.model_validate(raw).model_dump()
             else:
-                raw = await request.app.state.ai.review_resolution(
-                    original_photos=paths["original_images"],
-                    resolution_photos=paths["resolution_images"],
-                    resolution_note=snapshot["resolution_note"],
-                    config=config,
-                )
+                if same_image:
+                    raw = ResolutionResult(
+                        visible_changes=[],
+                        remaining_issues=[],
+                        uncertainties=["整改照片与整改前照片完全重复，未提供新的整改证据"],
+                        acceptance_recommendation="无法依据重复照片确认整改，请补充新照片或人工现场验收。",
+                        suggestion="need_human",
+                        same_image=True,
+                    )
+                else:
+                    raw = await request.app.state.ai.review_resolution(
+                        original_photos=paths["original_images"],
+                        resolution_photos=paths["resolution_images"],
+                        resolution_note=snapshot["resolution_note"],
+                        config=config,
+                    )
                 result = ResolutionResult.model_validate(raw).model_dump()
+                result.update(
+                    same_image=same_image,
+                    reviewed_images=[]
+                    if same_image
+                    else snapshot.get("group_images", snapshot["original_images"]),
+                    before_total=before_total,
+                )
     except TimeoutError:
         failure = APIError(504, "ai_timeout", "AI 分析超时，材料已保存，请稍后重试", retryable=True)
     except ValidationError:
@@ -162,19 +205,22 @@ async def analyze(event_id: str, body: AnalyzeRequest, request: Request):
             ):
                 target = "needs_info"
                 conn.execute(
-                    "UPDATE events SET status=?,updated_at=? WHERE id=?", (target, now(), event_id)
+                    "UPDATE events SET status=?,updated_at=?,revision=revision+1 WHERE id=?",
+                    (target, now(), event_id),
                 )
             db.timeline(
                 conn,
                 event_id,
                 "analysis_succeeded",
                 "ai",
-                "AI 意见仅供参考，派单和结案需人工确认",
+                "同图检查完成，未调用模型，需补充整改证据"
+                if same_image
+                else "AI 意见仅供参考，派单和结案需人工确认",
                 current["status"],
                 target,
                 {"analysis_id": run_id, "version": version},
             )
-        response = db.event(conn, event_id)
+        response = db.event(conn, event_id, admin=actor == "admin")
     if failure:
         raise failure
     return response

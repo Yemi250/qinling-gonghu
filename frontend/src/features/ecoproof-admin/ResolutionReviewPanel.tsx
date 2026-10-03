@@ -109,7 +109,7 @@ export function ResolutionReviewPanel({
       </div>
 
       <p className="ecoproof-scope">
-        {review
+        {sameImage ? "同图检查已完成，本次未调用模型。" : review
           ? `本次核验材料：整改前照片 ${beforeReviewed} 张、整改后照片 ${afterReviewed} 张${
               reviewedSet
                 ? `（送入模型 ${beforeReviewed + afterReviewed} / 展示 ${
@@ -135,7 +135,7 @@ export function ResolutionReviewPanel({
           </p>
           {review && (
             <p className="ecoproof-meta ecoproof-meta--mono">
-              上一次核验基于相同照片
+              本次系统检查发现相同照片
               {model ? ` · ${model}` : ""}
               {finishedAt ? ` · ${formatTime(finishedAt)}` : ""}，其意见不作为整改证据。
             </p>
@@ -225,7 +225,7 @@ export function ResolutionReviewPanel({
           </button>
         </div>
         <p className="ecoproof-meta">
-          两个动作都会记录到事件时间线；最终权限与状态校验在服务端完成。
+          验收与退回的说明会留在处理进程中，让这份关注有据可查。
         </p>
       </section>
     </section>

@@ -4,14 +4,20 @@ import {
   type Action,
   type Event,
   type EventStatus,
+  type Associations,
   STATUS_LABELS,
 } from "../../api/client";
 import { AiEventCard } from "../visitor/AiEventCard";
+import { VisitorProofCard } from "../ecoproof";
+import { CaseMergePanel, ResolutionReviewPanel } from "../ecoproof-admin";
+import "./journey-upgrade.css";
 import { JourneyHeader, JourneyFooter } from "./Journey";
 import { dateLabel, scenicName } from "./scenes";
+import { usePointNames } from "./usePointNames";
 
 /** A real administrator workbench completes the visitor's environmental care flow. */
 export function Workbench() {
+  const pointName = usePointNames();
   const [token, setToken] = useState(() => {
     try {
       return sessionStorage.getItem("gonghu.admin") || "";
@@ -31,6 +37,8 @@ export function Workbench() {
   const [note, setNote] = useState("");
   const [assignee, setAssignee] = useState("");
   const [photo, setPhoto] = useState<File>();
+  const [associations, setAssociations] = useState<Associations>();
+  const [associationError, setAssociationError] = useState("");
   const credentials = { adminToken: token };
   async function load() {
     try {
@@ -48,6 +56,32 @@ export function Workbench() {
   useEffect(() => {
     if (token) void load();
   }, [token, filter, offset]);
+  useEffect(() => {
+    if (!token || !selected) return;
+    let live = true;
+    setAssociations(undefined);
+    setAssociationError("");
+    api.associations(selected.id, credentials).then(data => {
+      if (live) setAssociations(data);
+    }).catch(e => { if (live) setAssociationError(e.message); });
+    return () => { live = false; };
+  }, [token, selected?.id, selected?.revision, selected?.proof?.status]);
+  useEffect(() => {
+    if (!token || !selected || selected.proof?.status !== "running") return;
+    let live = true;
+    let fetching = false;
+    const timer = window.setInterval(async () => {
+      if (fetching) return;
+      fetching = true;
+      try {
+        const next = await api.event(selected.id, credentials);
+        if (live) setSelected(next);
+      } catch (e) {
+        if (live) setError(e instanceof Error ? e.message : "读取阶段失败");
+      } finally { fetching = false; }
+    }, 1000);
+    return () => { live = false; window.clearInterval(timer); };
+  }, [token, selected?.id, selected?.proof?.status]);
   async function login(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
@@ -67,12 +101,12 @@ export function Workbench() {
       setBusy(false);
     }
   }
-  async function action(action: Action["action"]) {
+  async function action(action: Action["action"], actionNote = note) {
     if (!selected || busy) return;
     setBusy(true);
     setError("");
     try {
-      const body: Action = { action, note, assignee, description: "" };
+      const body: Action = { action, note: actionNote, assignee, description: "" };
       if (action === "submit_resolution") {
         if (!photo) throw Error("请上传处理后照片");
         body.resolution_images = [await api.upload(photo)];
@@ -89,17 +123,16 @@ export function Workbench() {
     }
   }
   async function analyze() {
-    if (!selected) return;
+    if (!selected || busy) return;
     setBusy(true);
     setError("");
     try {
-      setSelected(
-        await api.analyze(
-          selected.id,
-          selected.status === "pending_acceptance" ? "resolution" : "report",
-          credentials,
-        ),
-      );
+      if (selected.status === "pending_acceptance") {
+        setSelected(await api.analyze(selected.id, "resolution", credentials));
+      } else {
+        await api.proof(selected.id, credentials);
+        setSelected(await api.event(selected.id, credentials));
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "AI 分析未完成");
       try {
@@ -111,6 +144,35 @@ export function Workbench() {
       setBusy(false);
     }
   }
+  async function changeAssociation(targetId?: string, targetVersion?: number) {
+    if (!selected || busy) return;
+    const candidate = associations?.candidates.find(c => c.id === targetId);
+    setBusy(true);
+    setError("");
+    try {
+      const next = targetId && targetVersion ? await api.merge(selected.id, {
+        target_event_id: targetId, source_revision: selected.revision,
+        target_revision: targetVersion,
+        reason: `管理员查看关联依据后确认：${candidate?.reasons.join("；") || "人工复核"}`,
+      }, credentials) : await api.unmerge(selected.id, {
+        relationship_version: selected.relationship_version, reason: "管理员复核后撤销归并",
+      }, credentials);
+      setSelected(next);
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "关联处理失败");
+      try { setSelected(await api.event(selected.id, credentials)); } catch { /* Retain materials. */ }
+    } finally { setBusy(false); }
+  }
+  const runBusy = busy || selected?.proof?.status === "running";
+  const canAnalyze = !!selected && !selected.merged_into &&
+    ["pending_review", "needs_info"].includes(selected.status);
+  const reviewRun = selected?.analyses.filter(a => a.kind === "resolution").slice(-1)[0];
+  const reviewResult = reviewRun?.result && "acceptance_recommendation" in reviewRun.result
+    ? reviewRun.result : null;
+  const reviewedAfter = reviewRun?.input_snapshot?.resolution_images;
+  const reviewedAfterIds = Array.isArray(reviewedAfter) ? reviewedAfter.flatMap((i: unknown) =>
+    i && typeof i === "object" && "id" in i && typeof i.id === "string" ? [i.id] : []) : [];
   return (
     <div className="journey-page">
       <JourneyHeader />
@@ -172,7 +234,7 @@ export function Workbench() {
                   ))}
                 </select>
               </label>
-              <span>共 {total} 条线索</span>
+              <span>共 {total} 件治理事件</span>
               <button className="ink-link" onClick={load}>
                 刷新
               </button>
@@ -221,6 +283,7 @@ export function Workbench() {
                         {e.is_demo ? "演示" : "实际"}
                       </small>
                       <strong>{e.description || "一份环境关注"}</strong>
+                      {e.governance && <small>{e.governance.submission_count} 份关联投稿 · {e.governance.unique_image_count} 张不同图片</small>}
                       <time>{dateLabel(e.created_at)}</time>
                     </span>
                   </button>
@@ -243,21 +306,66 @@ export function Workbench() {
               <section>
                 {selected ? (
                   <>
+                    <VisitorProofCard
+                      runState={selected.proof?.status ?? "idle"}
+                      stale={selected.proof?.stale ?? false}
+                      steps={(selected.proof?.steps ?? []).map(s => ({ ...s, evidence: s.evidence ?? [] }))}
+                      conclusion={selected.proof?.conclusion ?? null}
+                      model={selected.proof?.model ?? null}
+                      startedAt={selected.proof?.started_at ?? null}
+                      finishedAt={selected.proof?.finished_at ?? null}
+                      busy={runBusy} error={selected.proof?.error ?? (error || null)}
+                      onStart={canAnalyze ? analyze : undefined}
+                      onRetry={canAnalyze ? analyze : undefined}
+                    />
                     <AiEventCard
                       event={selected}
-                      pointName={`${scenicName(selected.scenic_id)}示范区`}
-                      onRetry={
-                        ["needs_info", "pending_review"].includes(
-                          selected.status,
-                        )
-                          ? analyze
-                          : undefined
-                      }
-                      retrying={busy}
+                      pointName={pointName(selected.point_id, scenicName(selected.scenic_id))}
+                      retrying={runBusy}
                     />
-                    <div className="action-sheet">
+                    <CaseMergePanel
+                      key={`merge-${selected.id}`}
+                      candidates={(associations?.candidates ?? []).filter(c => !c.stale).map(c => ({
+                        id: c.id, title: c.title, pointName: pointName(c.point_id, scenicName(selected.scenic_id)), createdAt: c.created_at,
+                        version: c.version, relation: c.relation, reasons: c.reasons,
+                        uncertainties: c.uncertainties, submissionCount: c.submission_count,
+                        uniqueImageCount: c.unique_image_count,
+                      }))}
+                      currentSummary={selected.merged_into ? {
+                        targetEventId: selected.merged_into,
+                        reasons: selected.timeline.filter(t => t.action === "merged").slice(-1).map(t => t.note),
+                      } : null}
+                      relationshipVersion={selected.relationship_version}
+                      busy={runBusy} error={associationError || error || null}
+                      stale={!selected.merged_into && (!!associations?.stale || !associations)}
+                      onMerge={(id, version) => void changeAssociation(id, version)}
+                      onUndo={() => void changeAssociation()}
+                    />
+                    {associations && <div className="case-materials">
+                      {associations.candidates.filter(c => !c.stale).map(c => <details key={c.id}>
+                        <summary>查看候选 QL-{c.id.slice(0, 8).toUpperCase()} 的图片依据</summary>
+                        <div className="case-photo-grid">{c.images.map(i => <img key={i.id} src={i.url} alt="候选线索材料" />)}</div>
+                      </details>)}
+                      {associations.members.length > 1 && <>
+                        <h3>共同治理材料 · {associations.members.length} 份投稿</h3>
+                        {associations.members.map(member => <details key={member.id}>
+                          <summary>投稿 QL-{member.id.slice(0, 8).toUpperCase()} · {member.description || "环境关注"}</summary>
+                          <div className="case-photo-grid">{member.original_images.map(i => <img key={i.id} src={i.url} alt="关联投稿材料，仅工作人员可见" />)}</div>
+                          <button className="ink-link" disabled={runBusy} onClick={async () => {
+                            setError(""); setNote("");
+                            try { setSelected(await api.event(member.id, credentials)); }
+                            catch(e) { setError(e instanceof Error ? e.message : "读取失败"); }
+                          }}>查看这份投稿与关联 ↗</button>
+                        </details>)}
+                      </>}
+                    </div>}
+                    {selected.merged_into && <button className="ink-link" onClick={async () => {
+                      try { setSelected(await api.event(selected.merged_into!, credentials)); }
+                      catch(e) { setError(e instanceof Error ? e.message : "读取失败"); }
+                    }}>前往主事件接力处理 ↗</button>}
+                    {!selected.merged_into && <div className="action-sheet">
                       <h2>接力处理</h2>
-                      <label>
+                      {selected.status !== "pending_acceptance" && <label>
                         处理说明
                         <textarea
                           rows={3}
@@ -265,7 +373,7 @@ export function Workbench() {
                           onChange={(e) => setNote(e.target.value)}
                           disabled={busy}
                         />
-                      </label>
+                      </label>}
                       {selected.status === "pending_review" && (
                         <label>
                           责任人
@@ -323,81 +431,35 @@ export function Workbench() {
                             提交整改与照片
                           </button>
                         )}
-                        {selected.status === "pending_acceptance" && (
-                          <>
-                            <button disabled={busy} onClick={analyze}>
-                              AI 对比前后照片
-                            </button>
-                            <button
-                              disabled={busy || !note}
-                              onClick={() => action("close")}
-                            >
-                              人工验收并结案
-                            </button>
-                            <button
-                              disabled={busy || !note}
-                              onClick={() => action("return")}
-                            >
-                              退回继续照看
-                            </button>
-                          </>
-                        )}
                       </div>
-                      {selected.resolution_images.length > 0 && (
-                        <div className="comparison">
-                          <div>
-                            <small>照看前</small>
-                            <img
-                              src={selected.original_images[0].url}
-                              alt="照看前"
-                            />
-                          </div>
-                          <div>
-                            <small>照看后</small>
-                            <img
-                              src={selected.resolution_images[0].url}
-                              alt="照看后"
-                            />
-                          </div>
-                        </div>
-                      )}
-                      {selected.analyses
-                        .filter(
-                          (a) =>
-                            a.kind === "resolution" &&
-                            a.status === "succeeded" &&
-                            !a.stale,
-                        )
-                        .slice(-1)
-                        .map((a) => (
-                          <div key={a.id}>
-                            <h3>AI 整改对比意见</h3>
-                            {a.result &&
-                              "acceptance_recommendation" in a.result && (
-                                <>
-                                  <p>{a.result.acceptance_recommendation}</p>
-                                  {[
-                                    ["可见变化", a.result.visible_changes],
-                                    ["仍需照看", a.result.remaining_issues],
-                                    ["还不确定", a.result.uncertainties],
-                                  ].map(
-                                    ([label, lines]) =>
-                                      Array.isArray(lines) &&
-                                      lines.length > 0 && (
-                                        <section key={label as string}>
-                                          <h4>{label}</h4>
-                                          <ul>
-                                            {lines.map((line) => (
-                                              <li key={line}>{line}</li>
-                                            ))}
-                                          </ul>
-                                        </section>
-                                      ),
-                                  )}
-                                </>
-                              )}
-                          </div>
-                        ))}
+                      {selected.resolution_images.length > 0 && <fieldset
+                        className="case-review-frame" disabled={selected.status !== "pending_acceptance"}>
+                        <ResolutionReviewPanel
+                          key={`review-${selected.id}`}
+                          beforeImages={(associations?.before_images ?? selected.original_images).map(i => ({ ...i, alt: "整改前材料" }))}
+                          afterImages={selected.resolution_images.map(i => ({ ...i, alt: "整改后材料" }))}
+                          beforeTotal={associations?.before_total ?? selected.original_images.length}
+                          review={reviewResult ? {
+                            suggestion: reviewResult.suggestion ?? "need_human",
+                            visibleChanges: reviewResult.visible_changes,
+                            remainingIssues: reviewResult.remaining_issues,
+                            uncertainties: reviewResult.uncertainties,
+                            reviewedImageIds: reviewResult.same_image ? [] : [
+                              ...(reviewResult.reviewed_images ?? []).map(i => i.id),
+                              ...reviewedAfterIds,
+                            ],
+                          } : null}
+                          sameImage={reviewResult?.same_image ?? false}
+                          stale={reviewRun?.stale ?? false}
+                          busy={busy} error={error || null}
+                          model={reviewResult?.same_image ? null : reviewRun?.model ?? null}
+                          finishedAt={reviewRun?.finished_at ?? null}
+                          onAnalyze={() => void analyze()}
+                          onClose={n => void action("close", n)}
+                          onReturn={n => void action("return", n)}
+                        />
+                        {reviewResult && <p className="notebook-fine">{reviewResult.acceptance_recommendation}</p>}
+                      </fieldset>}
                       <ol className="admin-timeline">
                         {selected.timeline.map((t) => (
                           <li key={t.id}>
@@ -405,7 +467,7 @@ export function Workbench() {
                           </li>
                         ))}
                       </ol>
-                    </div>
+                    </div>}
                   </>
                 ) : (
                   <div className="empty-journal">
