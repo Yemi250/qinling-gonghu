@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   api,
   type Action,
   type Event,
   type EventStatus,
   type Associations,
+  type Overview,
   STATUS_LABELS,
 } from "../../api/client";
 import { AiEventCard } from "../visitor/AiEventCard";
@@ -12,7 +13,7 @@ import { VisitorProofCard } from "../ecoproof";
 import { CaseMergePanel, ResolutionReviewPanel } from "../ecoproof-admin";
 import "./journey-upgrade.css";
 import { JourneyHeader, JourneyFooter } from "./Journey";
-import { dateLabel, scenicName } from "./scenes";
+import { dateLabel, scenicName, SCENES } from "./scenes";
 import { usePointNames } from "./usePointNames";
 
 /** A real administrator workbench completes the visitor's environmental care flow. */
@@ -33,6 +34,13 @@ export function Workbench() {
   const [total, setTotal] = useState(0);
   const [offset, setOffset] = useState(0);
   const [filter, setFilter] = useState<EventStatus | "">("");
+  const [scenic, setScenic] = useState("");
+  const [point, setPoint] = useState("");
+  const [overview, setOverview] = useState<Overview>();
+  const [summaryError, setSummaryError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const requestVersion = useRef(0);
+  const selectionVersion = useRef(0);
   const [selected, setSelected] = useState<Event>();
   const [note, setNote] = useState("");
   const [assignee, setAssignee] = useState("");
@@ -40,22 +48,58 @@ export function Workbench() {
   const [associations, setAssociations] = useState<Associations>();
   const [associationError, setAssociationError] = useState("");
   const credentials = { adminToken: token };
+  /** Scope changes invalidate reads and clear drafts to prevent acting on the previous case. */
+  function clearSelection() {
+    requestVersion.current += 1;
+    selectionVersion.current += 1;
+    setSelected(undefined); setAssociations(undefined); setAssociationError("");
+    setNote(""); setAssignee(""); setPhoto(undefined); setError("");
+    setItems([]); setTotal(0);
+  }
+  /** Destination counters are independent of list filters; late pages cannot overwrite a new scope. */
   async function load() {
+    const version = ++requestVersion.current;
+    setLoading(true); setError("");
     try {
-      const data = await api.events(credentials, {
-        status: filter || undefined,
-        limit: 20,
-        offset,
-      });
-      setItems(data.items);
-      setTotal(data.total);
+      const [page, summary] = await Promise.allSettled([
+        api.events(credentials, {
+          status: filter || undefined, scenic_id: scenic || undefined,
+          point_id: point || undefined, limit: 20, offset,
+        }), api.overview(),
+      ]);
+      if (version !== requestVersion.current) return;
+      if (page.status === "fulfilled") {
+        setItems(page.value.items); setTotal(page.value.total);
+      } else {
+        setItems([]); setTotal(0);
+        setError(page.reason instanceof Error ? page.reason.message : "读取失败");
+      }
+      if (summary.status === "fulfilled") {
+        setOverview(summary.value); setSummaryError("");
+      } else { setSummaryError("景区待处理统计暂不可用，请刷新重试。"); }
     } catch (e) {
-      setError(e instanceof Error ? e.message : "读取失败");
-    }
+      if (version === requestVersion.current)
+        setError(e instanceof Error ? e.message : "读取失败");
+    } finally { if (version === requestVersion.current) setLoading(false); }
   }
   useEffect(() => {
     if (token) void load();
-  }, [token, filter, offset]);
+    return () => { requestVersion.current += 1; };
+  }, [token, filter, scenic, point, offset]);
+  /** Ignore linked-material responses if the operator has selected another scope or case. */
+  async function openLinkedEvent(id: string) {
+    const version = ++selectionVersion.current;
+    setError(""); setNote(""); setPhoto(undefined);
+    try {
+      const next = await api.event(id, credentials);
+      if (version === selectionVersion.current) {
+        setSelected(next); setAssignee(next.assignee || "");
+      }
+    } catch (e) {
+      if (version === selectionVersion.current)
+        setError(e instanceof Error ? e.message : "读取失败");
+    }
+  }
   useEffect(() => {
     if (!token || !selected) return;
     let live = true;
@@ -75,7 +119,10 @@ export function Workbench() {
       fetching = true;
       try {
         const next = await api.event(selected.id, credentials);
-        if (live) setSelected(next);
+        if (live) {
+          setSelected(next);
+          if (next.proof?.status !== "running") void load();
+        }
       } catch (e) {
         if (live) setError(e instanceof Error ? e.message : "读取阶段失败");
       } finally { fetching = false; }
@@ -173,6 +220,19 @@ export function Workbench() {
   const reviewedAfter = reviewRun?.input_snapshot?.resolution_images;
   const reviewedAfterIds = Array.isArray(reviewedAfter) ? reviewedAfter.flatMap((i: unknown) =>
     i && typeof i === "object" && "id" in i && typeof i.id === "string" ? [i.id] : []) : [];
+  const destinations = [{ scenicId: "", name: "全部景区" }, ...Object.values(SCENES)];
+  const availablePoints = (overview?.points ?? []).filter(p =>
+    p.availability === "demo" && (!scenic || p.scenic_id === scenic));
+  const scopeName = scenic ? scenicName(scenic) : "全部景区";
+  /** Count open governance roots, without treating duplicate submissions as separate work. */
+  function pendingCount(id: string): number | null {
+    if (!overview || summaryError) return null;
+    if (!id) return Object.entries(overview.by_status)
+      .filter(([status]) => !["closed", "rejected"].includes(status))
+      .reduce((sum, [, count]) => sum + count, 0);
+    return overview.points.filter(p => p.scenic_id === id)
+      .reduce((sum, p) => sum + p.pending_count, 0);
+  }
   return (
     <div className="journey-page">
       <JourneyHeader />
@@ -216,12 +276,39 @@ export function Workbench() {
           </form>
         ) : (
           <>
+            <div className="workbench-scenic-heading">
+              <h2>按景区接力</h2><p>数字为待处理治理事件，重复投稿归并后只计一件。</p>
+            </div>
+            <nav className="workbench-scenic-nav" aria-label="按景区查看治理事件">
+              {destinations.map(destination => {
+                const count = pendingCount(destination.scenicId);
+                return <button key={destination.scenicId} type="button"
+                  aria-pressed={scenic === destination.scenicId} disabled={busy}
+                  aria-label={`${destination.name}，待处理 ${count ?? "暂不可用"} 件`}
+                  onClick={() => {
+                    if (scenic === destination.scenicId) return;
+                    clearSelection(); setScenic(destination.scenicId); setPoint(""); setOffset(0);
+                  }}>
+                  <span>{destination.name}</span><span className="workbench-scenic-count" aria-hidden="true">{count ?? "—"}</span>
+                </button>;
+              })}
+            </nav>
+            {summaryError && <p className="notebook-fine" role="status">{summaryError}</p>}
             <div className="workbench-toolbar">
+              <label>具体点位{" "}
+                <select value={point} disabled={busy || !overview}
+                  onChange={e => { clearSelection(); setPoint(e.target.value); setOffset(0); }}>
+                  <option value="">全部点位</option>
+                  {availablePoints.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                </select>
+              </label>
               <label>
                 处理阶段{" "}
                 <select
                   value={filter}
+                  disabled={busy}
                   onChange={(e) => {
+                    clearSelection();
                     setFilter(e.target.value as EventStatus | "");
                     setOffset(0);
                   }}
@@ -234,13 +321,15 @@ export function Workbench() {
                   ))}
                 </select>
               </label>
-              <span>共 {total} 件治理事件</span>
-              <button className="ink-link" onClick={load}>
+              <span role="status">{loading ? "正在读取事件…" : `${scopeName} · 共 ${total} 件治理事件`}</span>
+              <button className="ink-link" onClick={load} disabled={busy || loading}>
                 刷新
               </button>
               <button
                 className="ink-link"
+                disabled={busy}
                 onClick={async () => {
+                  setBusy(true);
                   try {
                     await api.logout(credentials);
                   } catch (e) {
@@ -250,6 +339,7 @@ export function Workbench() {
                         : "服务暂不可用，已退出本地会话。",
                     );
                   } finally {
+                    clearSelection(); setOverview(undefined); setLoading(false); setBusy(false);
                     setToken("");
                     try {
                       sessionStorage.setItem("gonghu.admin", "");
@@ -264,15 +354,18 @@ export function Workbench() {
             </div>
             <div className="workbench-layout">
               <aside className="workbench-list">
-                {!items.length && <p>这个阶段暂无待办。</p>}
+                {!items.length && <p>{loading ? "正在读取这处景区的关注…" : error ? "事件未能读取，请刷新重试。" : "当前景区和筛选条件下暂无治理事件。"}</p>}
                 {items.map((e) => (
                   <button
                     key={e.id}
                     className={selected?.id === e.id ? "selected" : ""}
+                    disabled={busy || loading}
                     onClick={() => {
+                      selectionVersion.current += 1;
                       setSelected(e);
                       setNote("");
                       setAssignee(e.assignee || "");
+                      setPhoto(undefined);
                       setError("");
                     }}
                   >
@@ -283,6 +376,7 @@ export function Workbench() {
                         {e.is_demo ? "演示" : "实际"}
                       </small>
                       <strong>{e.description || "一份环境关注"}</strong>
+                      <small>{pointName(e.point_id, scenicName(e.scenic_id))}</small>
                       {e.governance && <small>{e.governance.submission_count} 份关联投稿 · {e.governance.unique_image_count} 张不同图片</small>}
                       <time>{dateLabel(e.created_at)}</time>
                     </span>
@@ -290,14 +384,14 @@ export function Workbench() {
                 ))}
                 <div className="pager">
                   <button
-                    disabled={offset === 0}
-                    onClick={() => setOffset(Math.max(0, offset - 20))}
+                    disabled={busy || loading || offset === 0}
+                    onClick={() => { clearSelection(); setOffset(Math.max(0, offset - 20)); }}
                   >
                     上一页
                   </button>
                   <button
-                    disabled={offset + 20 >= total}
-                    onClick={() => setOffset(offset + 20)}
+                    disabled={busy || loading || offset + 20 >= total}
+                    onClick={() => { clearSelection(); setOffset(offset + 20); }}
                   >
                     下一页
                   </button>
@@ -351,18 +445,11 @@ export function Workbench() {
                         {associations.members.map(member => <details key={member.id}>
                           <summary>投稿 QL-{member.id.slice(0, 8).toUpperCase()} · {member.description || "环境关注"}</summary>
                           <div className="case-photo-grid">{member.original_images.map(i => <img key={i.id} src={i.url} alt="关联投稿材料，仅工作人员可见" />)}</div>
-                          <button className="ink-link" disabled={runBusy} onClick={async () => {
-                            setError(""); setNote("");
-                            try { setSelected(await api.event(member.id, credentials)); }
-                            catch(e) { setError(e instanceof Error ? e.message : "读取失败"); }
-                          }}>查看这份投稿与关联 ↗</button>
+                          <button className="ink-link" disabled={runBusy} onClick={() => void openLinkedEvent(member.id)}>查看这份投稿与关联 ↗</button>
                         </details>)}
                       </>}
                     </div>}
-                    {selected.merged_into && <button className="ink-link" onClick={async () => {
-                      try { setSelected(await api.event(selected.merged_into!, credentials)); }
-                      catch(e) { setError(e instanceof Error ? e.message : "读取失败"); }
-                    }}>前往主事件接力处理 ↗</button>}
+                    {selected.merged_into && <button className="ink-link" disabled={runBusy} onClick={() => void openLinkedEvent(selected.merged_into!)}>前往主事件接力处理 ↗</button>}
                     {!selected.merged_into && <div className="action-sheet">
                       <h2>接力处理</h2>
                       {selected.status !== "pending_acceptance" && <label>

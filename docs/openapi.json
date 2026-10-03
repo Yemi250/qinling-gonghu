@@ -893,6 +893,22 @@
             }
           },
           {
+            "name": "scenic_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Scenic Id"
+            }
+          },
+          {
             "name": "point_id",
             "in": "query",
             "required": false,
@@ -3695,6 +3711,13 @@
           "event_count": {
             "type": "integer",
             "title": "Event Count",
+            "default": 0
+          },
+          "pending_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Pending Count",
+            "description": "未归并且未结案或归档的治理事件数",
             "default": 0
           }
         },

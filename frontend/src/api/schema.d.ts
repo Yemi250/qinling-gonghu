@@ -686,6 +686,12 @@ export interface components {
              * @default 0
              */
             event_count: number;
+            /**
+             * Pending Count
+             * @description 未归并且未结案或归档的治理事件数
+             * @default 0
+             */
+            pending_count: number;
         };
         /**
          * Postcard
@@ -1542,6 +1548,7 @@ export interface operations {
         parameters: {
             query?: {
                 status?: components["schemas"]["Status"] | null;
+                scenic_id?: string | null;
                 point_id?: string | null;
                 assignee?: string | null;
                 is_demo?: boolean | null;

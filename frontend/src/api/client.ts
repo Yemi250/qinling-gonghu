@@ -106,6 +106,7 @@ export const api = {
     credentials: Credentials,
     filters: {
       status?: EventStatus;
+      scenic_id?: string;
       point_id?: string;
       assignee?: string;
       is_demo?: boolean;

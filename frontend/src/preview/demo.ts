@@ -21,6 +21,7 @@ export const DEMO_POINTS: Point[] = [
   availability: 'demo' as const,
   label: '示范点位（非真实运营接入）',
   event_count: 0,
+  pending_count: 0,
 }))
 
 export const DEMO_STATS = { reported: 12, processing: 3, closed: 8, demo: 12 }

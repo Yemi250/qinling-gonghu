@@ -125,6 +125,7 @@ def create_event(body: CreateEvent, request: Request):
 def list_events(
     request: Request,
     status: Status | None = None,
+    scenic_id: str | None = None,
     point_id: str | None = None,
     assignee: str | None = None,
     is_demo: bool | None = None,
@@ -137,6 +138,7 @@ def list_events(
         clauses, values = ["merged_into IS NULL"], []
         for field, value in (
             ("status", status),
+            ("scenic_id", scenic_id),
             ("point_id", point_id),
             ("assignee", assignee),
             ("is_demo", is_demo),
@@ -283,9 +285,11 @@ def overview(request: Request):
             "SELECT COUNT(*) FROM events WHERE is_demo=1 AND merged_into IS NULL"
         ).fetchone()[0]
         counts = {
-            r["point_id"]: r["n"]
+            r["point_id"]: {"event_count": r["n"], "pending_count": r["pending"]}
             for r in conn.execute(
-                "SELECT point_id,COUNT(*) AS n FROM events "
+                "SELECT point_id,COUNT(*) AS n, "
+                "SUM(CASE WHEN status NOT IN ('closed','rejected') THEN 1 ELSE 0 END) "
+                "AS pending FROM events "
                 "WHERE merged_into IS NULL GROUP BY point_id"
             )
         }
@@ -296,5 +300,8 @@ def overview(request: Request):
             "closed_count": by_status[Status.closed],
             "demo_count": demo,
             "by_status": by_status,
-            "points": [{**p, "event_count": counts.get(p["id"], 0)} for p in POINTS],
+            "points": [
+                {**p, **counts.get(p["id"], {"event_count": 0, "pending_count": 0})}
+                for p in POINTS
+            ],
         }

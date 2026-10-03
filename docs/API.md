@@ -39,9 +39,9 @@
 
 六景区点位：兵马俑 `terracotta-entry` / `terracotta-rest`；太白山沿用 `trail-entrance` / `rest-area`；其余四景区各为 `<slug>-entry` / `<slug>-rest`，slug 对应 `huashan`、`baotashan`、`hanzhong`、`zhenbeitai`。事件创建必须同时匹配景区与点位；`planned` 仍仅作规划展示。现有路径、历史数据与凭证兼容；本轮证据分析与归并使用版本2增量迁移，具体见 [EcoProof升级契约](EcoProof升级契约.md)。
 
-- `GET /api/events`：仅管理员；可选 `status`、`point_id`、`assignee`、`is_demo`、`limit`（1—100）、`offset`，返回 `{items,total,limit,offset}`。
+- `GET /api/events`：仅管理员；可选 `scenic_id`、`status`、`point_id`、`assignee`、`is_demo`、`limit`（1—100）、`offset`，返回 `{items,total,limit,offset}`。景区、点位、阶段条件取交集，在数据库分页前筛选；未知景区或不匹配的点位返回空列表，不退回全部景区。
 - `GET /api/events/{id}`：管理员或该事件游客凭证。返回 Event：`id, scenic_id, point_id, description, original_images, status, assignee, resolution_images, resolution_note, review_note, is_demo, material_version, created_at, updated_at, timeline, analyses, ai_status`。
-- `GET /api/overview`：公开聚合 `{total,today_count,closed_count,by_status,demo_count,points}`；today_count 按 Asia/Shanghai 日期。点位包含示范/规划标签及实际 event_count，不返回事件详情。
+- `GET /api/overview`：公开聚合 `{total,today_count,closed_count,by_status,demo_count,points}`；today_count 按 Asia/Shanghai 日期。点位包含示范/规划标签、主事件 `event_count` 和待处理主事件 `pending_count`，不返回事件详情。待处理包含 pending_review、needs_info、processing、pending_acceptance，排除 closed、rejected 和归并子投稿。管理端按景区聚合点位 pending_count，导航数字不随当前点位/阶段筛选变化。
 - `GET /api/health`：就绪状态、版本和是否构建前端，不包含配置秘密。
 
 本轮 Event 追加 `revision, relationship_version, merged_into, proof, governance`。事件列表与总览的治理统计按主事件计算；`overview.submission_count` 统计全部投稿，`today_count` 继续统计当天投稿。游客只收到自己的材料和共同治理摘要，候选及其他投稿材料仅管理员可读。归并后原凭证有效，处理在主事件上进行。

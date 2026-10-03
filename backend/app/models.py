@@ -329,6 +329,7 @@ class Point(BaseModel):
     availability: Literal["demo", "planned"]
     label: str
     event_count: int = 0
+    pending_count: int = Field(default=0, ge=0, description="未归并且未结案或归档的治理事件数")
 
 
 class Overview(BaseModel):
