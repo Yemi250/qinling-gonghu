@@ -75,6 +75,18 @@ def run() -> None:
                     )
                 return response.json()
 
+            visitor_session = request(
+                "POST",
+                "/api/visitor/register",
+                json={
+                    "username": "live_visitor",
+                    "password": password,
+                    "confirm_password": password,
+                    "nickname": "隔离模型验收",
+                },
+            )
+            client.headers["X-Gonghu-CSRF"] = visitor_session["csrf_token"]
+
             def create(filename: str, description: str) -> dict:
                 """Normalize a real multipart upload before creating its scoped event."""
                 path = ROOT / "docs/demo-fixtures" / filename
@@ -178,6 +190,7 @@ def run() -> None:
                 input=json.dumps(
                     {
                         "origin": origin,
+                        "visitorCookie": client.cookies.get("gonghu_visitor"),
                         "records": records,
                         "adminToken": session["access_token"],
                         "evidence": str(data),

@@ -1,0 +1,70 @@
+{
+  "frozen_at": "2026-10-03T17:27:36.558510+00:00",
+  "base_commit": "f8272435807546bafc1a390f1b699b72ff336f46",
+  "source_sha256": {
+    "backend/app/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "backend/app/ai/__init__.py": "f7712c39c8940effab454969b91779f72ad89b3ff9c63d44e2fe2e9c6aa8ef9d",
+    "backend/app/ai/client.py": "8eddf646ce121300c24b0e328a12e717d2c1052c24299135126fbbb1c73919ca",
+    "backend/app/ai/config.py": "009af656c62d0cd313c1ea5cd75ae879a3e608a4632813e90fcae7bce0409652",
+    "backend/app/ai/prompts.py": "02383acd0d92b39a0dd8a4d3da309894d380fd0e2ba47ae49db63edfd570cf71",
+    "backend/app/ai/provider.py": "dc75ad652c3ec9c979cb1bad23da771375733a44b6403c546c9913a6f3af6bea",
+    "backend/app/ai/schemas.py": "097560d13340dc24fca7dccbd49fdac2cda37c973bc16771a4cd437823d2bd1b",
+    "backend/app/ai/service.py": "61d7a55dc149080520c4bac66dea5c1511d7532d3975b06a00857103e7608e21",
+    "backend/app/ai/smoke.py": "b7e21b1f513713c65c0670010494e12609e30607d0702ad593143c0b81e554f5",
+    "backend/app/ai_adapter.py": "1fda57b545f68f8418e6d3bd3498efd6d3363068c9c293d383387f061f210ca6",
+    "backend/app/analysis.py": "3bb85b2ea2f77bd507bb4a7e7b381b985e88d7bc24190166b9cd803cd8729f34",
+    "backend/app/cases.py": "97f13bef556ce2e3c362d3aefdf4030cb07e49fc6c89a6f6e72d56bb2e2be6a7",
+    "backend/app/config.py": "2dab62a5273f3e86428a1038b9b6066b1982a1645713419251d26a01a1f61e19",
+    "backend/app/db.py": "c59066a2bfecc9d3a3f9b6b8b03734db218acc1c46743f0b482de880fa96d15c",
+    "backend/app/errors.py": "0f23d9dea2571c032e77cc84425c5fdec09ed60de10d7d6b68337a87ea6f415f",
+    "backend/app/events.py": "8dd0bf03e6b80836843b057431a03ef23a3bb96caf570c89d7b637ce8a7810e6",
+    "backend/app/image_fingerprints.py": "1ae174d1f56cfbfde0f877f1fdeea2375b58463fb03ff2affb4d0bfcf21eba7e",
+    "backend/app/limits.py": "425b98830b4c95ba6b51234566ed1f2312fbdd83b10ec7f575c16a3711a9b418",
+    "backend/app/main.py": "386590ecf9f2d752fa5444e4d16dbdbc463914ee38f6b7826340e4c7b9fef06c",
+    "backend/app/models.py": "7786b5dbf2e0b1b4f4626dbdf6206d441e78f8ab93d947301e9cd282882d7da9",
+    "backend/app/postcards.py": "810d9719bbe31a83ed09c6767551b8ff057cfa40a26a69d2e16905f9855a5e86",
+    "backend/app/proof.py": "7408c841d874192866c16571604f9fcf92d632141c1878d979ca248f53463617",
+    "backend/app/rewards.py": "61977f8d3596a3e792af325e01eae0992342a54012c059a8d17043feebe42e7b",
+    "backend/app/security.py": "bf4bf196c5350f66827029f832dc8f1feb250f3698d40f1065e304a959608efe",
+    "backend/app/uploads.py": "47196492c8bcb97bbdd86420bef6ef2ddcfe940a2761a7dfba9df7d440565397",
+    "backend/app/visitor_auth.py": "5f9c163843fed5beb79bf6a224941edbe3b223cfb9b3be6f5993952588fb0f66",
+    "backend/app/visitor_models.py": "f61a7611ae8c3e9d846743fb47ec31c2d25d55914d38449a2f03cf0026468a4c",
+    "backend/app/visitors.py": "d02df7caff4cc613af63eb865e82d8747746d619706b51331d1a5c78582f11a7",
+    "frontend/src/features/passport/BadgeArt.tsx": "e99f08584d5751ee5ddb2e6042f99d4a1b20e811b16f4c8b81ee76013d309e40",
+    "frontend/src/features/passport/passport.css": "93b3caa3d5b6228e3b95f3d501e99b812fde81ae0730b8a7eb4f6d99ecf37366",
+    "frontend/src/features/passport/PassportPage.tsx": "bc80774eff5df3388889aeeac7ef89caf10fc25dbdfc57088dbc1bce4529ac4c",
+    "frontend/src/features/passport/ScenicTasks.tsx": "78a79cda5e57728209c43ca13d258853d8ac708264aa73184e06371d8997d283",
+    "frontend/src/features/passport/VisitorProvider.tsx": "4cd02e263a63e54c57ea7b08a35c9d96350b183aec460833dc14218276373a5c",
+    "scripts/live_upgrade_browser.mjs": "c847d88f27a445e3c9c76f782f50b7a42f7b6cdf408d5a64d050be0c147748ba",
+    "scripts/live_upgrade_smoke.py": "2224cb06aaa304a9a336928323c842331e94bfc6fcd5f0748b3bbbb0cc4e4afa",
+    "scripts/passport_browser.mjs": "f7e9098d9bb7043a1ebe47f07300be70c826bd0effc476ecc22786fb0d07bc53"
+  },
+  "input_sha256": {
+    "1ee4c0fe5ed345a9932850fff3ca4e00.jpg": "e2e043cc50092522e92ca324405fd69a421e2f86e0c60a1b9b8fce31da4ad79f",
+    "23d035c29153425dbb911e064e94a517.jpg": "aee43baa0f22dc81e47f04b67b494f5567211cef1f62fd501929b721a85f0b90",
+    "6051b56d646a4181974569706df1f936.jpg": "e2e043cc50092522e92ca324405fd69a421e2f86e0c60a1b9b8fce31da4ad79f",
+    "812931b343264c78be36414f2412dec9.jpg": "e2e043cc50092522e92ca324405fd69a421e2f86e0c60a1b9b8fce31da4ad79f",
+    "b91ee5f3a55f4200befd19c7a18ba07e.jpg": "0bfa4a1890c6f02183a1121ea438edeefe83bf08e5a5151cd60984a52e7f9fea",
+    "f6584c6193bb45d79620970eccaa622d.jpg": "e2e043cc50092522e92ca324405fd69a421e2f86e0c60a1b9b8fce31da4ad79f"
+  },
+  "real_model_window": {
+    "started_at": "2026-10-03T14:28:26.055101+00:00",
+    "finished_at": "2026-10-03T14:30:35.105007+00:00"
+  },
+  "parameters": {
+    "model": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+    "upstream_host": "api.siliconflow.cn",
+    "visitor_session_hours": 168,
+    "pbkdf2_iterations": 600000,
+    "explore_reward": 5,
+    "memory_reward": 10,
+    "contribution_reward": 20,
+    "browser_widths": [
+      320,
+      390,
+      768,
+      1440,
+      2048
+    ]
+  }
+}

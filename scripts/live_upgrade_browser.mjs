@@ -6,7 +6,7 @@ import { setTimeout as pause } from "node:timers/promises";
 import { chromium } from "../frontend/node_modules/playwright/index.mjs";
 let input = "";
 for await (const chunk of process.stdin) input += chunk;
-const { origin, records, adminToken, evidence, afterFixture } = JSON.parse(input);
+const { origin, records, visitorCookie, adminToken, evidence, afterFixture } = JSON.parse(input);
 const [root, duplicate, angle] = records;
 const browser = await chromium.launch({ headless: true,
   executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE || undefined });
@@ -15,7 +15,7 @@ const artifact = { checks: [], widths: [], passed: false };
 async function waitEvent(record, predicate, admin = false) {
   for (let i = 0; i < 480; i++) {
     const response = await fetch(`${origin}/api/events/${record.id}`, { headers:
-      admin ? { Authorization: `Bearer ${adminToken}` } : { "X-Visitor-Token": record.token } });
+      admin ? { Authorization: `Bearer ${adminToken}` } : { Cookie:`gonghu_visitor=${visitorCookie}`,"X-Visitor-Token": record.token } });
     assert.equal(response.status, 200);
     const event = await response.json();
     if (predicate(event)) return event;
@@ -26,8 +26,12 @@ async function waitEvent(record, predicate, admin = false) {
 try {
   const context = await browser.newContext({ viewport: { width: 1440, height: 1050 },
     reducedMotion: "reduce" });
+  await context.addCookies([
+    {name:"gonghu_visitor",value:visitorCookie,domain:"127.0.0.1",path:"/api",httpOnly:true,sameSite:"Lax"},
+    {name:"gonghu_admin_images",value:adminToken,domain:"127.0.0.1",path:"/api/images",httpOnly:true,sameSite:"Lax"},
+  ]);
   await context.addInitScript(({ records, adminToken }) => {
-    localStorage.setItem("gonghu.journey.receipts.v1", JSON.stringify(records));
+    // New records are read through the account, without browser-local receipts.
     sessionStorage.setItem("gonghu.admin", adminToken);
   }, { records, adminToken });
   const page = await context.newPage();

@@ -1,0 +1,34 @@
+{
+  "schema_version": 3,
+  "records": {
+    "events": {
+      "count": 4,
+      "unchanged": true
+    },
+    "postcards": {
+      "count": 0,
+      "unchanged": true
+    },
+    "uploads": {
+      "count": 4,
+      "unchanged": true
+    }
+  },
+  "visitor_accounts": 0,
+  "backup": {
+    "filename": "before-v3-91a77f365cb84f8097265621352a473c.sqlite3",
+    "version": 2,
+    "events": 4
+  },
+  "health": 200,
+  "visitor_me": {
+    "user": null,
+    "csrf_token": null
+  },
+  "admin_login": 200,
+  "admin_logout": 204,
+  "runtime_hashes_match": true,
+  "model": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+  "key_configured": true,
+  "pid": 21376
+}

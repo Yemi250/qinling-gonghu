@@ -56,6 +56,10 @@ try {
     ["hanzhong-demo", "汉中油菜花海", "hanzhong-entry", "hanzhong-rest"],
     ["zhenbeitai-demo", "镇北台", "zhenbeitai-entry", "zhenbeitai-rest"],
   ];
+  const registerResponse=await fetch(`${origin}/api/visitor/register`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username:"scenic_visitor",password,confirm_password:password})});
+  assert.equal(registerResponse.status,201);
+  const visitorSession=await registerResponse.json();
+  const visitorHeaders={Cookie:registerResponse.headers.get("set-cookie").split(";")[0],"X-Gonghu-CSRF":visitorSession.csrf_token};
   const fixture = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=", "base64");
   const ids = {};
   for (const [id, name, entry, rest] of scenes) {
@@ -63,14 +67,15 @@ try {
     for (let n = 0; n < (id === "terracotta-demo" ? 21 : 2); n++) {
       const form = new FormData();
       form.append("file", new Blob([fixture], { type: "image/png" }), "isolated-test.png");
-      const image = await json("uploads", { method: "POST", body: form }, 201);
-      const result = await json("events", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ scenic_id: id, point_id: n % 2 ? rest : entry, description: `隔离浏览器测试 · ${name} · ${n + 1}，非真实事件`, original_images: [image], is_demo: true }) }, 201);
+      const image = await json("uploads", { method: "POST", headers:visitorHeaders, body: form }, 201);
+      const result = await json("events", { method: "POST", headers: { ...visitorHeaders,"Content-Type": "application/json" }, body: JSON.stringify({ scenic_id: id, point_id: n % 2 ? rest : entry, description: `隔离浏览器测试 · ${name} · ${n + 1}，非真实事件`, original_images: [image], is_demo: true }) }, 201);
       ids[id].push(result.event.id);
     }
   }
   await json(`events/${ids["huashan-demo"][0]}/actions`, { method: "POST", headers: adminHeaders, body: JSON.stringify({ action: "reject", note: "隔离测试：已人工归档" }) });
   browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE || undefined });
   const context = await browser.newContext({ viewport: { width: 1440, height: 1050 }, reducedMotion: "reduce" });
+  await context.addCookies([{name:"gonghu_admin_images",value:session.access_token,domain:"127.0.0.1",path:"/api/images",httpOnly:true,sameSite:"Lax"}]);
   await context.addInitScript(token => sessionStorage.setItem("gonghu.admin", token), session.access_token);
   const page = await context.newPage();
   const errors = [];

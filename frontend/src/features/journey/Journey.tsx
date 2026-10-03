@@ -18,14 +18,17 @@ import { SCENES, readReceipts, dateLabel } from "./scenes";
 import "./journey.css";
 import "./home-atlas.css";
 import "./scenic-chapters.css";
+import { useVisitor } from "../passport/VisitorProvider";
+import { ScenicTasks } from "../passport/ScenicTasks";
 
 /** A quiet navigation layer shared by the atlas and themed scenic chapters. */
 export function JourneyHeader({ immersive = false }: { immersive?: boolean }) {
+  const visitor = useVisitor();
   const { pathname } = useLocation();
   const [searchOpen, setSearchOpen] = useState(false);
   const [search, setSearch] = useState("");
   return (
-    <header className="journey-header">
+    <header className={`journey-header${immersive ? " immersive" : ""}`}>
       <Link className="journey-brand" to="/">
         <svg
           className="brand-mountains"
@@ -67,7 +70,7 @@ export function JourneyHeader({ immersive = false }: { immersive?: boolean }) {
         <NavLink to="/scenic/taibai">秦岭专栏</NavLink>
         <NavLink to="/footprints">我的足迹</NavLink>
       </nav>
-      {immersive ? (
+      {(
         <div className="header-tools">
           <button
             aria-label="寻找一处风景"
@@ -77,12 +80,11 @@ export function JourneyHeader({ immersive = false }: { immersive?: boolean }) {
             <Search size={23} strokeWidth={1.6} />
           </button>
           <span className="header-tools-rule" />
-          <Link to="/footprints" aria-label="查看我的足迹">
+          {visitor.user ? <Link className="passport-header-user" to="/footprints" aria-label={`查看${visitor.user.nickname}的护照`}>
             <UserRound size={23} strokeWidth={1.6} />
-          </Link>
+            <span>{visitor.user.nickname}</span>
+          </Link> : <button className="passport-header-user" disabled={!visitor.ready} onClick={()=>visitor.requestLogin()} aria-label="注册或登录游客账号"><UserRound size={23} strokeWidth={1.6}/><span>{visitor.ready?"登录 / 注册":"读取中"}</span></button>}
         </div>
-      ) : (
-        <span className="header-edition">牛来 / 山河共护计划</span>
       )}
       {searchOpen && (
         <section
@@ -169,12 +171,20 @@ export function JourneyHome() {
 }
 /** Each scenic chapter changes color, scenery and copy while keeping interaction consistent. */
 export function ScenicPage() {
+  const visitor = useVisitor();
   const { slug } = useParams();
   const scene = SCENES[slug as keyof typeof SCENES];
   const [mode, setMode] = useState<"memory" | "care" | null>(null);
   useEffect(() => {
     setMode(null);
   }, [slug]);
+  useEffect(()=>{
+    const logout=()=>setMode(null);
+    window.addEventListener("gonghu:visitor-logout",logout);
+    return()=>window.removeEventListener("gonghu:visitor-logout",logout);
+  },[]);
+  /** Open the requested notebook only after an account is ready, without losing the destination. */
+  function participate(next: "memory" | "care") { visitor.requestLogin(()=>setMode(next)); }
   if (!scene)
     return (
       <div className="journey-page">
@@ -234,7 +244,7 @@ export function ScenicPage() {
               </span>
               <button
                 className="journal-choice"
-                onClick={() => setMode("memory")}
+                onClick={() => participate("memory")}
               >
                 <Camera strokeWidth={1.2} size={30} />
                 <span>
@@ -245,7 +255,7 @@ export function ScenicPage() {
               </button>
               <button
                 className="journal-choice"
-                onClick={() => setMode("care")}
+                onClick={() => participate("care")}
               >
                 <Heart strokeWidth={1.2} size={30} />
                 <span>
@@ -261,6 +271,7 @@ export function ScenicPage() {
               </div>
             </div>
           </section>
+          <ScenicTasks scene={scene} onMemory={()=>participate("memory")} onCare={()=>participate("care")}/>
         </main>
         <JourneyFooter />
       </div>

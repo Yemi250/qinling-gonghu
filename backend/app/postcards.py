@@ -9,22 +9,26 @@ from fastapi import APIRouter, Request, Security
 from .db import encode, now
 from .errors import APIError
 from .models import CreatedPostcard, CreatePostcard, Postcard
-from .security import digest, matches, visitor_scheme
+from .rewards import reconcile_all
+from .security import digest, visitor_scheme
 from .uploads import claim_images
+from .visitor_auth import record_access, require_visitor
 
 router = APIRouter()
 
 
 @router.post("/postcards", response_model=CreatedPostcard, status_code=201)
 def create_postcard(body: CreatePostcard, request: Request):
-    """Save a scenic photo and return its private retrieval capability once."""
+    """Save an account-owned scenic memory, retaining the response shape for legacy callers."""
     db = request.app.state.db
     identifier, token = uuid4().hex, secrets.token_urlsafe(32)
     timestamp = now()
     with db.transaction() as conn:
-        images = claim_images(conn, body.images, f"postcard:{identifier}")
+        user = require_visitor(request, conn, write=True)
+        images = claim_images(conn, body.images, f"postcard:{identifier}", owner_id=user["id"])
         conn.execute(
-            "INSERT INTO postcards VALUES(?,?,?,?,?,?)",
+            "INSERT INTO postcards(id,token_hash,scenic_id,description,images,created_at,"
+            "owner_id,legacy_access) VALUES(?,?,?,?,?,?,?,0)",
             (
                 identifier,
                 digest(token),
@@ -32,8 +36,10 @@ def create_postcard(body: CreatePostcard, request: Request):
                 body.description,
                 encode(images),
                 timestamp,
+                user["id"],
             ),
         )
+        reconcile_all(conn)
     return {
         "postcard": {
             "id": identifier,
@@ -50,16 +56,13 @@ def create_postcard(body: CreatePostcard, request: Request):
     "/postcards/{identifier}", response_model=Postcard, dependencies=[Security(visitor_scheme)]
 )
 def get_postcard(identifier: str, request: Request):
-    """Read a private memory only with its matching visitor credential."""
-    token = request.headers.get("X-Visitor-Token", "")
-    if not token:
-        raise APIError(401, "unauthorized", "请提供这张明信片的查询凭证")
+    """Read the owning account's memory, or a historical record's original capability."""
     with request.app.state.db.connect() as conn:
         row = conn.execute("SELECT * FROM postcards WHERE id=?", (identifier,)).fetchone()
+        if row is not None:
+            record_access(request, conn, row)
     if row is None:
         raise APIError(404, "not_found", "明信片不存在")
-    if not matches(token, row["token_hash"]):
-        raise APIError(403, "forbidden", "查询凭证不属于这张明信片")
     return {
         "id": row["id"],
         "scenic_id": row["scenic_id"],

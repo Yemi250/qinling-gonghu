@@ -8,7 +8,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse, Response
 from starlette.exceptions import HTTPException
 
-from . import analysis, events, postcards, proof, uploads
+from . import analysis, events, postcards, proof, uploads, visitors
 from .ai_adapter import ModuleAI
 from .config import Settings
 from .db import Database
@@ -16,6 +16,7 @@ from .errors import APIError
 from .limits import RequestBodyLimit
 from .models import ErrorResponse, Login, Session
 from .security import admin_scheme, create_session, digest, require_admin
+from .visitor_auth import ADMIN_IMAGE_COOKIE
 
 
 def create_app(settings: Settings | None = None, ai=None) -> FastAPI:
@@ -44,6 +45,7 @@ def create_app(settings: Settings | None = None, ai=None) -> FastAPI:
     app.state.settings, app.state.db, app.state.ai = settings, db, ai or ModuleAI()
     app.state.proof_tasks = set()
     app.state.proof_locks = {}
+    app.state.visitor_attempts = visitors.new_attempt_buckets()
     login_attempts = defaultdict(list)
 
     @app.exception_handler(APIError)
@@ -124,7 +126,7 @@ def create_app(settings: Settings | None = None, ai=None) -> FastAPI:
         return response
 
     @app.post("/api/auth/login", response_model=Session)
-    def login(body: Login, request: Request):
+    def login(body: Login, request: Request, response: Response):
         # In-process throttle is sufficient for the single-worker local demonstration.
         address = request.client.host if request.client else "unknown"
         current = monotonic()
@@ -139,6 +141,15 @@ def create_app(settings: Settings | None = None, ai=None) -> FastAPI:
         login_attempts[address].append(current)
         with db.transaction() as conn:
             session = create_session(settings, conn, body.username, body.password)
+        response.set_cookie(
+            ADMIN_IMAGE_COOKIE,
+            session["access_token"],
+            max_age=settings.admin_session_hours * 3600,
+            httponly=True,
+            secure=settings.visitor_cookie_secure or request.url.scheme == "https",
+            samesite="lax",
+            path="/api/images",
+        )
         login_attempts.pop(address, None)
         return session
 
@@ -147,7 +158,9 @@ def create_app(settings: Settings | None = None, ai=None) -> FastAPI:
         with db.transaction() as conn:
             token = require_admin(request, conn)
             conn.execute("DELETE FROM sessions WHERE token_hash=?", (digest(token),))
-        return Response(status_code=204)
+        response = Response(status_code=204)
+        response.delete_cookie(ADMIN_IMAGE_COOKIE, path="/api/images")
+        return response
 
     @app.get("/api/health")
     def health():
@@ -164,6 +177,7 @@ def create_app(settings: Settings | None = None, ai=None) -> FastAPI:
     app.include_router(analysis.router, prefix="/api")
     app.include_router(postcards.router, prefix="/api")
     app.include_router(proof.router, prefix="/api")
+    app.include_router(visitors.router, prefix="/api")
 
     @app.get("/{path:path}", include_in_schema=False)
     def frontend(path: str):

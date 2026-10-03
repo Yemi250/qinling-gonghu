@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router";
 import { ArrowLeft, Feather, LoaderCircle, RefreshCw } from "lucide-react";
 import {
   api,
+  ApiError,
   STATUS_LABELS,
   type Event,
   type Postcard,
@@ -12,6 +13,7 @@ import { VisitorProofCard, SharedCaseFeedback } from "../ecoproof";
 import "./journey-upgrade.css";
 import { JourneyHeader, JourneyFooter } from "./Journey";
 import { usePointNames } from "./usePointNames";
+import { useVisitor } from "../passport/VisitorProvider";
 import {
   readReceipts,
   dateLabel,
@@ -22,6 +24,7 @@ import {
 
 /** Look up scoped credentials without embedding secrets in URLs. */
 function useReceipt(kind: "memory" | "care") {
+  const { user } = useVisitor();
   const { id = "" } = useParams();
   const location = useLocation();
   const [receipt, setReceipt] = useState<Receipt | undefined>(
@@ -35,7 +38,8 @@ function useReceipt(kind: "memory" | "care") {
         readReceipts().find((r) => r.id === id && r.kind === kind),
     );
   }, [id, kind, location.key]);
-  return { id, receipt: receipt?.id === id ? receipt : undefined, setReceipt, auto: !!location.state?.startAnalysis };
+  const accountAccess = useMemo<Receipt | undefined>(()=>user && /^[a-f0-9]{32}$/.test(id) ? {id, token:"",kind,scenic:"",title:"",image:"",date:""} : undefined,[user?.id,id,kind]);
+  return { id, receipt: (receipt?.id === id ? receipt : undefined) ?? accountAccess, setReceipt, auto: !!location.state?.startAnalysis };
 }
 export function MemoryPage() {
   const { id, receipt, setReceipt } = useReceipt("memory");
@@ -81,7 +85,7 @@ export function MemoryPage() {
               </span>
               <h2>{card.description || "有些风景，值得再看一次。"}</h2>
               <p>
-                {receipt.scenic} · {dateLabel(card.created_at)}
+                {scenicName(card.scenic_id)} · {dateLabel(card.created_at)}
               </p>
               <small>编号 {id.slice(0, 8).toUpperCase()} / 私密收藏</small>
               <Feather size={22} />
@@ -98,6 +102,7 @@ export function MemoryPage() {
 }
 /** Show actual persisted AI runs and administrator actions, with explicit failure recovery. */
 export function CarePage() {
+  const visitor = useVisitor();
   const { id, receipt, setReceipt, auto } = useReceipt("care");
   const [event, setEvent] = useState<Event>();
   const [error, setError] = useState("");
@@ -121,6 +126,7 @@ export function CarePage() {
       await api.proof(id, { queryToken: receipt.token });
       setEvent(await api.event(id, { queryToken: receipt.token }));
     } catch (e) {
+      if(e instanceof ApiError && (e.status===401 || e.detail.code==="invalid_csrf")) visitor.requestLogin();
       setError(e instanceof Error ? e.message : "分析暂未完成");
       try {
         setEvent(await api.event(id, { queryToken: receipt.token }));
@@ -215,7 +221,7 @@ export function CarePage() {
                 />
                 <AiEventCard
                   event={event}
-                  pointName={pointName(event.point_id, receipt.scenic)}
+                  pointName={pointName(event.point_id, scenicName(event.scenic_id))}
                   retrying={processing}
                 />
                 </div>
@@ -245,7 +251,7 @@ export function CarePage() {
                   {event.governance && <SharedCaseFeedback
                     caseCode={`QL-${event.governance.case_id.slice(0, 8).toUpperCase()}`}
                     statusLabel={STATUS_LABELS[event.governance.status]}
-                    pointName={pointName(event.governance.point_id, receipt.scenic)}
+                    pointName={pointName(event.governance.point_id, scenicName(event.scenic_id))}
                     submissionCount={event.governance.submission_count}
                     uniqueImageCount={event.governance.unique_image_count}
                     duplicateImageCount={event.governance.duplicate_image_count}
@@ -310,6 +316,7 @@ export function CarePage() {
 
 /** Make the full receipt available for an intentional, private cross-device recovery. */
 function ReceiptBackup({ receipt }: { receipt: Receipt }) {
+  if (!receipt.token) return null;
   return (
     <details className="receipt-backup">
       <summary>保存这页的私密访问凭证</summary>
@@ -422,7 +429,9 @@ function Supplement({
   token: string;
   updated: (e: Event) => void;
 }) {
-  const [description, setDescription] = useState("");
+  const visitor = useVisitor();
+  const draftKey=`supplement:${event.id}`;
+  const [description, setDescription] = useState(()=>visitor.readDraft(draftKey));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   async function submit(e: React.FormEvent) {
@@ -438,7 +447,9 @@ function Supplement({
         ),
       );
       setDescription("");
+      visitor.writeDraft(draftKey,"");
     } catch (e) {
+      if(e instanceof ApiError && (e.status===401 || e.detail.code==="invalid_csrf")) visitor.requestLogin();
       setError(e instanceof Error ? e.message : "补充失败");
     } finally {
       setBusy(false);
@@ -452,7 +463,7 @@ function Supplement({
           maxLength={4000}
           required
           value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          onChange={(e) => {setDescription(e.target.value);visitor.writeDraft(draftKey,e.target.value);}}
           disabled={busy}
         />
       </label>

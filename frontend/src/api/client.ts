@@ -8,6 +8,14 @@ export type Action = Models["Action"];
 export type CreateEvent = Models["CreateEvent"];
 export type Postcard = Models["Postcard"];
 export type Associations = Models["AssociationView"];
+export type VisitorUser = Models["VisitorUser"];
+export type Passport = Models["Passport"];
+export type PersonalRecord = Models["PersonalRecord"];
+export type Badge = Models["Badge"];
+export type ContributionStatus = Models["ContributionStatus"];
+let visitorCsrf = "";
+/** Keep CSRF in memory; the authentication cookie is inaccessible to JavaScript. */
+export function setVisitorCsrf(value: string | null) { visitorCsrf = value || ""; }
 export type Credentials = { adminToken?: string; queryToken?: string };
 
 export const STATUS_LABELS: Record<EventStatus, string> = {
@@ -38,6 +46,8 @@ async function request<T>(
     headers.set("Authorization", `Bearer ${credentials.adminToken}`);
   if (credentials.queryToken)
     headers.set("X-Visitor-Token", credentials.queryToken);
+  if (init.method && init.method !== "GET" && !credentials.adminToken && visitorCsrf)
+    headers.set("X-Gonghu-CSRF", visitorCsrf);
   if (init.body && !(init.body instanceof FormData))
     headers.set("Content-Type", "application/json");
   let response: Response;
@@ -54,6 +64,8 @@ async function request<T>(
   if (response.status === 204) return undefined as T;
   const data = await response.json().catch(() => null);
   if (!response.ok) {
+    if (!credentials.adminToken && ["visitor_login_required","invalid_csrf"].includes(data?.error?.code))
+      window.dispatchEvent(new Event("gonghu:visitor-expired"));
     throw new ApiError(
       response.status,
       data?.error ?? {
@@ -68,12 +80,23 @@ async function request<T>(
 }
 
 export const api = {
+  visitorMe: () => request<Models["VisitorSession"]>("/visitor/me"),
+  visitorLogin: (username: string, password: string) => request<Models["VisitorSession"]>("/visitor/login", { method: "POST", body: JSON.stringify({ username, password }) }),
+  visitorRegister: (body: Models["Register"]) => request<Models["VisitorSession"]>("/visitor/register", { method: "POST", body: JSON.stringify(body) }),
+  visitorLogout: () => request<void>("/visitor/logout", { method: "POST" }),
+  passport: () => request<Passport>("/visitor/me/passport"),
+  explore: (scenicId: string) => request<Passport>(`/visitor/explore/${encodeURIComponent(scenicId)}`, { method: "POST" }),
+  visitorRecords: (filters: {kind?: "memory" | "care"; scenic_id?: string; offset?: number} = {}) => request<Models["PersonalRecords"]>(`/visitor/me/records?${new URLSearchParams(Object.entries(filters).filter(([,value]) => value !== undefined).map(([key,value]) => [key,String(value)]))}`),
+  visitorRewards: (offset = 0) => request<Models["RewardHistory"]>(`/visitor/me/rewards?offset=${offset}`),
+  importRecords: (records: Models["LegacyClaim"][]) => request<Models["ImportResult"][]>("/visitor/me/import", {method:"POST", body:JSON.stringify({records})}),
+  contribution: (id: string, credentials: Credentials) => request<ContributionStatus>(`/events/${id}/contribution`, {}, credentials),
+  reviewContribution: (id: string, body: Models["ContributionDecision"], credentials: Credentials) => request<ContributionStatus>(`/events/${id}/contribution`, {method:"POST", body:JSON.stringify(body)}, credentials),
   createPostcard: (body: Models["CreatePostcard"]) =>
     request<Models["CreatedPostcard"]>("/postcards", {
       method: "POST",
       body: JSON.stringify(body),
     }),
-  postcard: (id: string, queryToken: string) =>
+  postcard: (id: string, queryToken = "") =>
     request<Postcard>(
       `/postcards/${encodeURIComponent(id)}`,
       {},
@@ -87,13 +110,13 @@ export const api = {
     }),
   logout: (credentials: Credentials) =>
     request<void>("/auth/logout", { method: "POST" }, credentials),
-  upload: (file: File) => {
+  upload: (file: File, credentials: Credentials = {}) => {
     const body = new FormData();
     body.set("file", file);
     return request<Models["UploadResponse"]>("/uploads", {
       method: "POST",
       body,
-    });
+    }, credentials);
   },
   createEvent: (body: CreateEvent) =>
     request<Models["CreatedEvent"]>("/events", {

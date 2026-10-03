@@ -1,0 +1,116 @@
+{
+  "passed": true,
+  "checks": [
+    "Registration resumes the exact scenic notebook; expiration preserves preview/text; new records use server identity",
+    "Same account synchronizes on an independent browser without importing local tokens",
+    "Duplicate usernames show an error; second account cannot read the first account's new record/image or use admin APIs",
+    "Explorer/card badges and +5/+10 audit details come from real server data",
+    "Expired supplement reauthenticates the same account and preserves its in-memory draft",
+    "Same-account cookie rotation restores passport progress across tabs instead of leaving the cleared view empty",
+    "Logout clears prior account views; incorrect password is visible; switching accounts never exposes old records",
+    "BroadcastChannel synchronizes logout and identity changes across tabs without sharing secrets",
+    "Explicit legacy import binds an unowned record; another account cannot transfer it; original anonymous read capability stays compatible"
+  ],
+  "widths": [
+    {
+      "width": 320,
+      "tab": "我的旅程",
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "tab": "风景记忆",
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "tab": "共护回音",
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "tab": "勋章册",
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "tab": "我的旅程",
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "tab": "风景记忆",
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "tab": "共护回音",
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "tab": "勋章册",
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "tab": "我的旅程",
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "tab": "风景记忆",
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "tab": "共护回音",
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "tab": "勋章册",
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "tab": "我的旅程",
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "tab": "风景记忆",
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "tab": "共护回音",
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "tab": "勋章册",
+      "overflow": false
+    },
+    {
+      "width": 2048,
+      "tab": "我的旅程",
+      "overflow": false
+    },
+    {
+      "width": 2048,
+      "tab": "风景记忆",
+      "overflow": false
+    },
+    {
+      "width": 2048,
+      "tab": "共护回音",
+      "overflow": false
+    },
+    {
+      "width": 2048,
+      "tab": "勋章册",
+      "overflow": false
+    }
+  ]
+}

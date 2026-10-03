@@ -18,6 +18,16 @@ def admin(client):
     return {"Authorization": f"Bearer {response.json()['access_token']}"}
 
 
+def visitor_login(client, *, register=False):
+    """Authenticate isolated test accounts through the real visitor API and CSRF contract."""
+    body = {"username": "fixture_visitor", "password": "fixture-visitor-only"}
+    if register:
+        body.update(confirm_password=body["password"], nickname="测试游客")
+    response = client.post("/api/visitor/" + ("register" if register else "login"), json=body)
+    assert response.status_code == (201 if register else 200), response.text
+    client.headers["X-Gonghu-CSRF"] = response.json()["csrf_token"]
+
+
 def upload(client, color="green"):
     buffer = BytesIO()
     Image.new("RGB", (16, 16), color).save(buffer, format="PNG")
@@ -71,6 +81,7 @@ def test_full_lifecycle_and_persistence(client, settings):
     response = act(client, event["id"], manager, "close", note="人工核验通过，感谢参与")
     assert response.json()["status"] == "closed"
     with TestClient(create_app(settings)) as restarted:
+        visitor_login(restarted)
         saved = restarted.get(f"/api/events/{event['id']}", headers=visitor).json()
         assert saved["status"] == "closed"
         assert saved["review_note"] == "人工核验通过，感谢参与"
@@ -82,7 +93,7 @@ def test_full_lifecycle_and_persistence(client, settings):
 def test_credentials_are_event_scoped_and_admin_actions_protected(client):
     one, token = report(client)
     two, _ = report(client)
-    assert client.get(f"/api/events/{one['id']}").status_code == 401
+    assert client.get(f"/api/events/{one['id']}", headers={"Cookie": ""}).status_code == 401
     assert client.get(f"/api/events/{two['id']}", headers=token).status_code == 403
     assert client.get("/api/events", headers=token).status_code == 401
     for action in ["assign", "close", "reject", "return", "submit_resolution", "request_info"]:

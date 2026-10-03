@@ -264,6 +264,7 @@ class Event(BaseModel):
     merged_into: str | None = None
     proof: ProofView | None = None
     governance: GovernanceSummary | None = None
+    contribution_review: dict | None = None
 
 
 class CreatedEvent(BaseModel):

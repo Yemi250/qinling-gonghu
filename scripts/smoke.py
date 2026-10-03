@@ -87,6 +87,17 @@ def main():
         assert '<div id="root"></div>' in client.get("/").text
         assert '<div id="root"></div>' in client.get("/visitor/example").text
         assert client.get("/api/no-such-route").status_code == 404
+        visitor_login = client.post(
+            "/api/visitor/register",
+            json={
+                "username": "http_visitor",
+                "password": password,
+                "confirm_password": password,
+                "nickname": "HTTP测试游客",
+            },
+        )
+        visitor_login.raise_for_status()
+        client.headers["X-Gonghu-CSRF"] = visitor_login.json()["csrf_token"]
         image = BytesIO()
         Image.new("RGB", (16, 16), "green").save(image, "PNG")
 
@@ -147,6 +158,10 @@ def main():
         assert client.get("/api/overview").json()["closed_count"] == 1
 
     with server(data_dir, port, password) as client:
+        login = client.post(
+            "/api/visitor/login", json={"username": "http_visitor", "password": password}
+        )
+        login.raise_for_status()
         saved = client.get(path, headers=visitor).json()
         assert saved["status"] == "closed"
         for picture in saved["original_images"] + saved["resolution_images"]:

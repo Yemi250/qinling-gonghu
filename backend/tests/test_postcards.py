@@ -4,7 +4,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from backend.app.main import create_app
-from backend.tests.test_api import upload
+from backend.tests.test_api import upload, visitor_login
 
 
 def test_postcard_is_private_persistent_and_not_a_work_order(client, settings):
@@ -21,11 +21,12 @@ def test_postcard_is_private_persistent_and_not_a_work_order(client, settings):
     assert response.status_code == 201
     created = response.json()
     path = f"/api/postcards/{created['postcard']['id']}"
-    assert client.get(path).status_code == 401
+    assert client.get(path, headers={"Cookie": ""}).status_code == 401
     assert client.get(path, headers={"X-Visitor-Token": "wrong"}).status_code == 403
     assert client.get("/api/overview").json()["total"] == 0
     headers = {"X-Visitor-Token": created["query_token"]}
     with TestClient(create_app(settings)) as restarted:
+        visitor_login(restarted)
         saved = restarted.get(path, headers=headers)
         assert saved.status_code == 200
         assert saved.json()["description"] == "山间的云"
@@ -85,7 +86,7 @@ def test_new_scenic_chapters_keep_memories_private_and_points_scoped(client, set
     assert postcard.status_code == 201
     memory = postcard.json()
     memory_path = f"/api/postcards/{memory['postcard']['id']}"
-    assert client.get(memory_path).status_code == 401
+    assert client.get(memory_path, headers={"Cookie": ""}).status_code == 401
     assert client.get("/api/overview").json()["total"] == 0
     image = upload(client, "red")
     body = {"scenic_id": scenic_id, "point_id": "trail-entrance", "original_images": [image]}
@@ -95,8 +96,9 @@ def test_new_scenic_chapters_keep_memories_private_and_points_scoped(client, set
     assert created.status_code == 201
     event = created.json()
     event_path = f"/api/events/{event['event']['id']}"
-    assert client.get(event_path).status_code == 401
+    assert client.get(event_path, headers={"Cookie": ""}).status_code == 401
     with TestClient(create_app(settings)) as restarted:
+        visitor_login(restarted)
         saved_memory = restarted.get(
             memory_path, headers={"X-Visitor-Token": memory["query_token"]}
         )

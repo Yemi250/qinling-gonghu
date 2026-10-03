@@ -43,11 +43,9 @@ def require_admin(request: Request, conn):
 def event_actor(request: Request, conn, row) -> str:
     if admin_token(request, conn):
         return "admin"
-    token = request.headers.get("X-Visitor-Token", "")
-    if not token:
-        raise APIError(401, "unauthorized", "请提供本事件查询凭证")
-    if not matches(token, row["token_hash"]):
-        raise APIError(403, "forbidden", "查询凭证不属于此事件")
+    from .visitor_auth import record_access
+
+    record_access(request, conn, row)
     return "visitor"
 
 

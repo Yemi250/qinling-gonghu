@@ -172,6 +172,9 @@ def merge_submission(
         db.timeline(
             conn, row["id"], "merged", actor, reason, row["status"], row["status"], evidence
         )
+    from .rewards import reconcile_all
+
+    reconcile_all(conn)
 
 
 def undo_merge(db, conn, source_id, *, version, reason):
@@ -206,6 +209,10 @@ def undo_merge(db, conn, source_id, *, version, reason):
             row["status"],
             {"source_id": source_id},
         )
+
+    from .rewards import reconcile_all
+
+    reconcile_all(conn)
 
 
 def touch_case(conn, row):

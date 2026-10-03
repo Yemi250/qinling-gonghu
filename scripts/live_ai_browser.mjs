@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { chromium } from "../frontend/node_modules/playwright/index.mjs";
 let input = "";
 for await (const chunk of process.stdin) input += chunk;
-const { origin, records, adminToken, evidence } = JSON.parse(input);
+const { origin, records, visitorCookie, adminToken, evidence } = JSON.parse(input);
 const browser = await chromium.launch({
   headless: true,
   executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE || undefined,
@@ -13,12 +13,13 @@ try {
   const context = await browser.newContext({
     viewport: { width: 1440, height: 1050 },
   });
+  await context.addCookies([
+    {name:"gonghu_visitor",value:visitorCookie,domain:"127.0.0.1",path:"/api",httpOnly:true,sameSite:"Lax"},
+    {name:"gonghu_admin_images",value:adminToken,domain:"127.0.0.1",path:"/api/images",httpOnly:true,sameSite:"Lax"},
+  ]);
   await context.addInitScript(
     ({ records, adminToken }) => {
-      localStorage.setItem(
-        "gonghu.journey.receipts.v1",
-        JSON.stringify(records),
-      );
+
       sessionStorage.setItem("gonghu.admin", adminToken);
     },
     { records, adminToken },

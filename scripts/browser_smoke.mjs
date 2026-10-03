@@ -126,6 +126,18 @@ try {
   await page.keyboard.press("Escape");
   assert.equal(await page.getByRole("dialog").count(), 0);
   await page.getByRole("button", { name: "留住这一刻" }).click();
+  const auth = page.locator(".passport-auth");
+  await auth.getByLabel("用户名", {exact:true}).fill("browser_visitor");
+  await auth.getByLabel("昵称", {exact:true}).fill("浏览器山河测试");
+  await auth.getByLabel("密码", {exact:true}).fill(password);
+  await auth.getByLabel("确认密码", {exact:true}).fill(password);
+  await auth.getByRole("button", {name:"注册并继续这一程"}).click();
+  await page.getByRole("heading", {name:"留住这一刻",exact:true}).waitFor();
+  /** Read private server records with this browser's real visitor session. */
+  async function ownedEvent(id) {
+    const response=await context.request.get(`${origin}/api/events/${id}`);
+    assert.equal(response.status(),200);return response.json();
+  }
   await page
     .locator("#journal-photo")
     .setInputFiles(join(root, "frontend/public/assets/terracotta.png"));
@@ -159,26 +171,15 @@ try {
   await page.waitForURL("**/#/care/*");
   await page.getByRole("button", { name: "重新分析" }).waitFor();
   const careURL = page.url();
-  const receipts = await page.evaluate(() =>
-    JSON.parse(localStorage.getItem("gonghu.journey.receipts.v1")),
-  );
-  assert.equal(receipts.length, 2);
-  const receipt = receipts.find((r) => r.kind === "care");
-  let saved = await json(
-    await fetch(`${origin}/api/events/${receipt.id}`, {
-      headers: { "X-Visitor-Token": receipt.token },
-    }),
-  );
+  assert.equal(await page.evaluate(()=>localStorage.getItem("gonghu.journey.receipts.v1")),null);
+  const receipt = {id:new URL(careURL).hash.split("/").at(-1)};
+  let saved=await ownedEvent(receipt.id);
   assert.equal(saved.ai_status.report, "failed");
   assert.equal(saved.analyses.length, 1);
   await page.reload();
   await page.locator(".care-timeline").waitFor();
   await pause(300);
-  saved = await json(
-    await fetch(`${origin}/api/events/${receipt.id}`, {
-      headers: { "X-Visitor-Token": receipt.token },
-    }),
-  );
+  saved=await ownedEvent(receipt.id);
   assert.equal(
     saved.analyses.length,
     1,
@@ -223,6 +224,7 @@ try {
   ]);
   await admin.locator(".record").getByText("已结案", { exact: true }).waitFor();
   await page.goto(careURL);
+  await page.reload();
   await page
     .locator(".care-timeline h2")
     .filter({ hasText: "已结案" })
@@ -232,11 +234,7 @@ try {
     path: join(evidence, "06-care-closed.png"),
     fullPage: true,
   });
-  saved = await json(
-    await fetch(`${origin}/api/events/${receipt.id}`, {
-      headers: { "X-Visitor-Token": receipt.token },
-    }),
-  );
+  saved=await ownedEvent(receipt.id);
   assert.equal(saved.status, "closed");
   assert.equal(saved.ai_status.resolution, "failed");
   await admin.screenshot({
@@ -245,14 +243,10 @@ try {
   });
   const fresh = await browser.newContext();
   const recovered = await fresh.newPage();
-  await recovered.goto(`${origin}/#/care/recover`);
-  await recovered.getByLabel("完整记录编号").fill(receipt.id);
-  await recovered.getByLabel("私密访问凭证").fill(receipt.token);
-  await recovered.getByRole("button", { name: "翻开这一页" }).click();
-  await recovered
-    .locator(".care-timeline h2")
-    .filter({ hasText: "已结案" })
-    .waitFor();
+  const sameAccount = await fresh.request.post(`${origin}/api/visitor/login`,{data:{username:"browser_visitor",password}});
+  assert.equal(sameAccount.status(),200);
+  await recovered.goto(careURL);
+  await recovered.locator(".care-timeline h2").filter({hasText:"已结案"}).waitFor();
   const chapters = [
     {
       slug: "terracotta",
@@ -332,6 +326,8 @@ try {
       .waitFor();
     await landmark.locator(".landmark-name").click();
     await page.waitForURL(`**/#/scenic/${chapter.slug}`);
+    await page.getByRole("button",{name:"领取印记"}).click();
+    await page.getByRole("button",{name:"已探索"}).waitFor();
     // Exercise both real upload/save flows for every scenic chapter.
     await page.getByRole("button", { name: "留住这一刻" }).click();
     await page
@@ -365,14 +361,8 @@ try {
     await page.getByRole("button", { name: "让这份善意有回音" }).click();
     await page.waitForURL("**/#/care/*");
     await page.getByRole("button", { name: "重新分析" }).waitFor();
-    const current = await page.evaluate(
-      () => JSON.parse(localStorage.getItem("gonghu.journey.receipts.v1"))[0],
-    );
-    const persisted = await json(
-      await fetch(`${origin}/api/events/${current.id}`, {
-        headers: { "X-Visitor-Token": current.token },
-      }),
-    );
+    const current = {id:new URL(page.url()).hash.split("/").at(-1)};
+    const persisted=await ownedEvent(current.id);
     assert.equal(persisted.scenic_id, chapter.id);
     assert.equal(persisted.point_id, chapter.point);
     assert.equal(persisted.ai_status.report, "failed");
@@ -387,16 +377,19 @@ try {
       .points.find(p => p.id === chapter.point);
     assert.ok(configuredPoint, "Chapter point must exist in the shared configuration");
     await admin.locator(".record").getByText(configuredPoint.name, { exact: true }).waitFor();
-    await recovered.goto(`${origin}/#/care/recover`);
-    await recovered.getByLabel("完整记录编号").fill(current.id);
-    await recovered.getByLabel("私密访问凭证").fill(current.token);
-    await recovered.getByRole("button", { name: "翻开这一页" }).click();
+    await recovered.goto(`${origin}/#/care/${current.id}`);
     await recovered.locator(".care-timeline").waitFor();
-    const recoveredReceipt = await recovered.evaluate(
-      () => JSON.parse(localStorage.getItem("gonghu.journey.receipts.v1"))[0],
-    );
-    assert.equal(recoveredReceipt.scenic, chapter.name);
+    const synchronized=await fresh.request.get(`${origin}/api/events/${current.id}`);
+    assert.equal((await synchronized.json()).scenic_id,chapter.id);
   }
+  await page.goto(`${origin}/#/footprints`,{waitUntil:"networkidle"});
+  await page.locator(".passport-cover").waitFor();
+  await page.getByRole("button",{name:"勋章册",exact:true}).click();
+  assert.equal(await page.locator(".passport-badge.earned").count(),6);
+  const passport=await (await context.request.get(`${origin}/api/visitor/me/passport`)).json();
+  assert.equal(passport.summary.explored_count,6);
+  assert.equal(passport.summary.guardian_value,110);
+  await page.screenshot({path:join(evidence,"10-passport-badges.png"),fullPage:true});
   const layouts = await context.newPage();
   layouts.on("pageerror", (e) => errors.push(e.message));
   for (const width of [2048, 1440, 768, 390, 320]) {
@@ -509,7 +502,7 @@ try {
   });
   assert.deepEqual(errors, []);
   console.log(
-    "PASS: 10-city atlas, scene routes, keyboard notebook, private memory, separate care records, real AI failure persistence, supplement, assign, resolution, manual close, receipt recovery, desktop/mobile layouts, no page errors.",
+    "PASS: 10-city atlas, scene routes, keyboard notebook, private memory, separate care records, real AI failure persistence, supplement, assign, resolution, manual close, visitor registration, account synchronization, desktop/mobile layouts, no page errors.",
   );
   console.log(`Evidence: ${evidence}`);
   console.log(

@@ -6,6 +6,7 @@ import {
   type EventStatus,
   type Associations,
   type Overview,
+  type ContributionStatus,
   STATUS_LABELS,
 } from "../../api/client";
 import { AiEventCard } from "../visitor/AiEventCard";
@@ -47,6 +48,9 @@ export function Workbench() {
   const [photo, setPhoto] = useState<File>();
   const [associations, setAssociations] = useState<Associations>();
   const [associationError, setAssociationError] = useState("");
+  const [contribution, setContribution] = useState<ContributionStatus>();
+  const [contributionError, setContributionError] = useState("");
+  const [contributionNote, setContributionNote] = useState("");
   const credentials = { adminToken: token };
   /** Scope changes invalidate reads and clear drafts to prevent acting on the previous case. */
   function clearSelection() {
@@ -110,6 +114,22 @@ export function Workbench() {
     }).catch(e => { if (live) setAssociationError(e.message); });
     return () => { live = false; };
   }, [token, selected?.id, selected?.revision, selected?.proof?.status]);
+  useEffect(()=>{
+    let live=true;setContribution(undefined);setContributionError("");setContributionNote("");
+    if(token&&selected)api.contribution(selected.id,credentials).then(result=>{if(live)setContribution(result);}).catch(e=>{if(live)setContributionError(e.message);});
+    return()=>{live=false;};
+  },[token,selected?.id,selected?.revision,selected?.relationship_version]);
+  /** Review each contribution independently from association and the case's treatment state. */
+  async function reviewContribution(decision:"accepted"|"rejected") {
+    if(!selected||busy||!contributionNote.trim())return;
+    setBusy(true);setContributionError("");
+    try {
+      await api.reviewContribution(selected.id,{decision,note:contributionNote,revision:selected.revision},credentials);
+      setSelected(await api.event(selected.id,credentials));
+      void load();
+    } catch(e) {setContributionError(e instanceof Error?e.message:"贡献审核暂未保存");}
+    finally{setBusy(false);}
+  }
   useEffect(() => {
     if (!token || !selected || selected.proof?.status !== "running") return;
     let live = true;
@@ -156,7 +176,7 @@ export function Workbench() {
       const body: Action = { action, note: actionNote, assignee, description: "" };
       if (action === "submit_resolution") {
         if (!photo) throw Error("请上传处理后照片");
-        body.resolution_images = [await api.upload(photo)];
+        body.resolution_images = [await api.upload(photo, credentials)];
       }
       const updated = await api.action(selected.id, body, credentials);
       setSelected(updated);
@@ -449,6 +469,17 @@ export function Workbench() {
                         </details>)}
                       </>}
                     </div>}
+                    <section className="passport-contribution" aria-label="有效贡献审核">
+                      <h3>让有效的关注，留下共护印记。</h3>
+                      {contribution?<>
+                        <p>贡献审核：{contribution.decision==="accepted"?"已确认有效":contribution.decision==="rejected"?"不计为有效贡献":"待逐份确认"} · {contribution.valid?"满足共护奖励条件":"当前不满足共护奖励条件"}</p>
+                        <p>{!contribution.independent?"这份投稿使用了已提交过的照片，不作为独立图片贡献，也不重复奖励。":!contribution.account_record?"此为旧匿名记录，导入游客护照后再核对奖励。":selected.merged_into?"关联成功不等于有效贡献，请逐份查看材料并确认。":"根投稿审核通过并派单可记为有效贡献；审核纠正会同步调整守护值。"}</p>
+                        {contribution.note&&<p>最近依据：{contribution.note}</p>}
+                        <label className="journal-field">本次贡献审核说明<textarea value={contributionNote} maxLength={4000} onChange={e=>setContributionNote(e.target.value)} disabled={runBusy}/></label>
+                        <div className="passport-contribution-actions"><button className="ink-link" disabled={runBusy||!contributionNote.trim()||!contribution.independent} onClick={()=>void reviewContribution("accepted")}>确认有效贡献</button><button className="ink-link" disabled={runBusy||!contributionNote.trim()} onClick={()=>void reviewContribution("rejected")}>不计为有效贡献 / 纠正审核</button></div>
+                      </>:<p>{contributionError||"正在读取贡献条件…"}</p>}
+                      {contributionError&&contribution&&<p role="alert" className="journal-error">{contributionError}</p>}
+                    </section>
                     {selected.merged_into && <button className="ink-link" disabled={runBusy} onClick={() => void openLinkedEvent(selected.merged_into!)}>前往主事件接力处理 ↗</button>}
                     {!selected.merged_into && <div className="action-sheet">
                       <h2>接力处理</h2>

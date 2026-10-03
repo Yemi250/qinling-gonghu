@@ -74,6 +74,18 @@ def run() -> None:
                     raise RuntimeError(f"HTTP {response.status_code}: {body.get('code')}")
                 return response.json()
 
+            visitor_session = request(
+                "POST",
+                "/api/visitor/register",
+                json={
+                    "username": "live_visitor",
+                    "password": password,
+                    "confirm_password": password,
+                    "nickname": "隔离模型验收",
+                },
+            )
+            client.headers["X-Gonghu-CSRF"] = visitor_session["csrf_token"]
+
             def upload(filename: str) -> dict:
                 """Send a real multipart upload, letting the app normalize the picture."""
                 path = ROOT / "frontend/public/assets" / filename
@@ -208,6 +220,7 @@ def run() -> None:
                 input=json.dumps(
                     {
                         "origin": origin,
+                        "visitorCookie": client.cookies.get("gonghu_visitor"),
                         "records": records,
                         "adminToken": admin_token,
                         "evidence": str(data),

@@ -6,7 +6,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from backend.app.main import create_app
-from backend.tests.test_api import act, admin, report, upload
+from backend.tests.test_api import act, admin, report, upload, visitor_login
 
 
 def report_output(**changes):
@@ -157,6 +157,7 @@ def test_interrupted_analysis_recovers_on_restart(client, settings):  # noqa: F8
     with client.app.state.db.transaction() as conn:
         conn.execute("UPDATE analyses SET status='running',error=NULL,finished_at=NULL")
     with TestClient(create_app(settings, ai=TestProvider())) as restarted:
+        visitor_login(restarted)
         saved = restarted.get(f"/api/events/{event['id']}", headers=visitor).json()
         assert saved["analyses"][0]["error"]["code"] == "ai_interrupted"
         retry = restarted.post(

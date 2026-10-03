@@ -14,7 +14,7 @@ from PIL import Image
 from backend.app.db import SCHEMA, Database
 from backend.app.main import create_app
 from backend.tests.test_analysis import TestProvider, report_output
-from backend.tests.test_api import act, admin, upload
+from backend.tests.test_api import act, admin, upload, visitor_login
 
 
 class ProofProvider(TestProvider):
@@ -383,22 +383,24 @@ def test_v1_backup_upgrade_and_restart_recovery(settings):
         )
     db = Database(settings.data_dir)
     db.initialize()
-    backups = list((settings.data_dir / "backups").glob("before-v2-*.sqlite3"))
+    backups = list((settings.data_dir / "backups").glob("before-v3-*.sqlite3"))
     assert len(backups) == 1
     with sqlite3.connect(backups[0]) as conn:
         assert conn.execute("PRAGMA user_version").fetchone()[0] == 1
         assert conn.execute("SELECT path FROM uploads").fetchone()[0] == "old.jpg"
     with db.connect() as conn:
-        assert conn.execute("PRAGMA user_version").fetchone()[0] == 2
+        assert conn.execute("PRAGMA user_version").fetchone()[0] == 3
         assert conn.execute("SELECT path,dhash FROM uploads").fetchone()[0] == "old.jpg"
     with TestClient(create_app(settings, ai=ProofProvider())) as client:
+        visitor_login(client, register=True)
         event, credentials = create_submission(client)
         proof(client, event, credentials)
         with client.app.state.db.transaction() as conn:
             conn.execute("UPDATE proof_runs SET status='running',finished_at=NULL")
     with TestClient(create_app(settings, ai=ProofProvider())) as client:
+        visitor_login(client)
         saved = client.get(f"/api/events/{event['id']}", headers=credentials).json()
         assert saved["proof"]["status"] == "failed"
         assert "重启" in saved["proof"]["error"]
         assert proof(client, saved, credentials)["proof"]["status"] == "succeeded"
-    assert len(list((settings.data_dir / "backups").glob("before-v2-*.sqlite3"))) == 1
+    assert len(list((settings.data_dir / "backups").glob("before-v3-*.sqlite3"))) == 1

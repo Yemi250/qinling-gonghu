@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { Camera, Feather, LoaderCircle, X } from "lucide-react";
-import { api, type Overview } from "../../api/client";
-import { saveReceipt, type Scene, type Receipt } from "./scenes";
+import { api, ApiError, type Overview } from "../../api/client";
+import { type Scene, type Receipt } from "./scenes";
+import { useVisitor } from "../passport/VisitorProvider";
 
 /** Photo submission is a notebook leaf; it persists a receipt before requesting AI. */
 export function Notebook({
@@ -15,6 +16,8 @@ export function Notebook({
   close: () => void;
 }) {
   const navigate = useNavigate();
+  const visitor = useVisitor();
+  const owner = useRef(visitor.user?.id);
   const dialog = useRef<HTMLDivElement>(null);
   const [file, setFile] = useState<File>();
   const [preview, setPreview] = useState("");
@@ -24,7 +27,12 @@ export function Notebook({
   const [busy, setBusy] = useState(false);
   const [step, setStep] = useState("");
   const [error, setError] = useState("");
-  const [recovery, setRecovery] = useState<Receipt>();
+  useEffect(()=>{
+    if(visitor.user && owner.current && owner.current !== visitor.user.id) {
+      setFile(undefined);setDescription("");setError("已切换账号，请为当前护照重新选择照片。");
+    }
+    if(visitor.user)owner.current=visitor.user.id;
+  },[visitor.user?.id]);
   useEffect(() => {
     const prev = document.activeElement as HTMLElement;
     const old = document.body.style.overflow;
@@ -85,7 +93,8 @@ export function Notebook({
   }
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!file || busy || recovery) return;
+    if (!file || busy) return;
+    if (!visitor.user) { visitor.requestLogin(()=>setError("登录已恢复，照片和文字已保留，请继续保存。")); return; }
     setBusy(true);
     setError("");
     try {
@@ -93,14 +102,14 @@ export function Notebook({
       const upload = await api.upload(file);
       let receipt: Receipt;
       if (mode === "memory") {
-        const { postcard, query_token } = await api.createPostcard({
+        const { postcard } = await api.createPostcard({
           scenic_id: scene.scenicId,
           description,
           images: [upload],
         });
         receipt = {
           id: postcard.id,
-          token: query_token,
+          token: "",
           kind: mode,
           scenic: scene.name,
           title: description || `${scene.name}的一刻`,
@@ -108,7 +117,7 @@ export function Notebook({
           date: postcard.created_at,
         };
       } else {
-        const { event, query_token } = await api.createEvent({
+        const { event } = await api.createEvent({
           scenic_id: scene.scenicId,
           point_id: point,
           description,
@@ -117,7 +126,7 @@ export function Notebook({
         });
         receipt = {
           id: event.id,
-          token: query_token,
+          token: "",
           kind: mode,
           scenic: scene.name,
           title: description || `为${scene.name}留一份关注`,
@@ -125,19 +134,12 @@ export function Notebook({
           date: event.created_at,
         };
       }
-      try {
-        saveReceipt(receipt);
-      } catch {
-        setRecovery(receipt);
-        setError(
-          "记录已经保存，但浏览器无法保存访问凭证。请复制下方编号和凭证，再继续查看。",
-        );
-        return;
-      }
+      void visitor.refreshPassport();
       navigate(`/${mode}/${receipt.id}`, {
         state: { startAnalysis: mode === "care" },
       });
     } catch (err) {
+      if(err instanceof ApiError && (err.status===401 || err.detail.code==="invalid_csrf")) visitor.requestLogin(()=>setError("登录已恢复，照片和文字已保留，请继续保存。"));
       setError(
         err instanceof Error ? err.message : "暂时未能保存，请稍后重试。",
       );
@@ -197,7 +199,7 @@ export function Notebook({
               id="journal-photo"
               type="file"
               accept="image/jpeg,image/png,image/webp"
-              disabled={busy || !!recovery}
+              disabled={busy}
               onChange={(e) => {
                 const f = e.target.files?.[0];
                 if (f && f.size > 10 * 1024 * 1024) {
@@ -220,7 +222,7 @@ export function Notebook({
                 aria-label="发现点位"
                 value={point}
                 onChange={(e) => setPoint(e.target.value)}
-                disabled={busy || !!recovery}
+                disabled={busy}
               >
                 {!points.length && <option value="">点位加载中</option>}
                 {points.map((p) => (
@@ -237,7 +239,7 @@ export function Notebook({
               rows={3}
               maxLength={120}
               value={description}
-              disabled={busy || !!recovery}
+              disabled={busy}
               onChange={(e) => setDescription(e.target.value)}
               placeholder={
                 mode === "memory"
@@ -257,32 +259,7 @@ export function Notebook({
               {error}
             </p>
           )}
-          {recovery ? (
-            <div className="receipt-backup">
-              <label>
-                记录编号
-                <input readOnly value={recovery.id} />
-              </label>
-              <label>
-                私密访问凭证
-                <input readOnly value={recovery.token} />
-              </label>
-              <button
-                type="button"
-                className="ink-link"
-                onClick={() =>
-                  navigate(`/${mode}/${recovery.id}`, {
-                    state: {
-                      receipt: recovery,
-                      startAnalysis: mode === "care",
-                    },
-                  })
-                }
-              >
-                已抄好，查看回音 ↗
-              </button>
-            </div>
-          ) : (
+          {(
             <button
               type="submit"
               className="journal-submit"

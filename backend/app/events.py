@@ -9,8 +9,10 @@ from .cases import touch_case
 from .db import encode, materials_match, now
 from .errors import APIError
 from .models import Action, CreatedEvent, CreateEvent, Event, EventList, Overview, Status
+from .rewards import reconcile_all
 from .security import admin_scheme, digest, event_actor, require_admin, visitor_scheme
 from .uploads import claim_images
+from .visitor_auth import require_visitor
 
 router = APIRouter()
 POINTS = [
@@ -81,6 +83,8 @@ TRANSITIONS = {
 
 @router.post("/events", response_model=CreatedEvent, status_code=201)
 def create_event(body: CreateEvent, request: Request):
+    with request.app.state.db.connect() as conn:
+        user = require_visitor(request, conn, write=True)
     if not any(
         p["id"] == body.point_id
         and p["scenic_id"] == body.scenic_id
@@ -91,11 +95,11 @@ def create_event(body: CreateEvent, request: Request):
     db = request.app.state.db
     event_id, token, timestamp = uuid4().hex, secrets.token_urlsafe(32), now()
     with db.transaction() as conn:
-        images = claim_images(conn, body.original_images, event_id)
+        images = claim_images(conn, body.original_images, event_id, owner_id=user["id"])
         conn.execute(
             "INSERT INTO events(id,token_hash,scenic_id,point_id,description,original_images,"
-            "status,is_demo,material_version,created_at,updated_at) "
-            "VALUES(?,?,?,?,?,?,'pending_review',?,1,?,?)",
+            "status,is_demo,material_version,created_at,updated_at,owner_id,legacy_access) "
+            "VALUES(?,?,?,?,?,?,'pending_review',?,1,?,?,?,0)",
             (
                 event_id,
                 digest(token),
@@ -106,6 +110,7 @@ def create_event(body: CreateEvent, request: Request):
                 body.is_demo,
                 timestamp,
                 timestamp,
+                user["id"],
             ),
         )
         db.timeline(
@@ -118,6 +123,7 @@ def create_event(body: CreateEvent, request: Request):
             "pending_review",
             {"images": images, "is_demo": body.is_demo},
         )
+        reconcile_all(conn)
         return {"event": db.event(conn, event_id), "query_token": token}
 
 
@@ -212,7 +218,14 @@ def take_action(event_id: str, body: Action, request: Request):
             originals = json.loads(row["original_images"])
             if len(originals) + len(body.original_images) > 5:
                 raise APIError(422, "too_many_images", "原图总数不能超过 5 张")
-            added = claim_images(conn, body.original_images, event_id)
+            user = require_visitor(request, conn, write=True) if actor != "admin" else None
+            added = claim_images(
+                conn,
+                body.original_images,
+                event_id,
+                owner_id=user["id"] if user else None,
+                admin=actor == "admin",
+            )
             changes["original_images"] = encode(originals + added)
             changes["description"] = body.description or row["description"]
             changes["material_version"] = row["material_version"] + 1
@@ -221,7 +234,7 @@ def take_action(event_id: str, body: Action, request: Request):
         if body.action == "submit_resolution":
             if not body.resolution_images or not row["assignee"]:
                 raise APIError(422, "resolution_required", "整改需要责任人、照片与说明")
-            images = claim_images(conn, body.resolution_images, event_id)
+            images = claim_images(conn, body.resolution_images, event_id, admin=True)
             changes.update(
                 resolution_images=encode(images),
                 resolution_note=body.note,
@@ -261,6 +274,7 @@ def take_action(event_id: str, body: Action, request: Request):
             target,
             evidence,
         )
+        reconcile_all(conn)
         return db.event(conn, event_id, admin=actor == "admin")
 
 
@@ -301,7 +315,6 @@ def overview(request: Request):
             "demo_count": demo,
             "by_status": by_status,
             "points": [
-                {**p, **counts.get(p["id"], {"event_count": 0, "pending_count": 0})}
-                for p in POINTS
+                {**p, **counts.get(p["id"], {"event_count": 0, "pending_count": 0})} for p in POINTS
             ],
         }

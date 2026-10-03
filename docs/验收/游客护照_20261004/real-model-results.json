@@ -1,0 +1,528 @@
+{
+  "started_at": "2026-10-03T14:28:26.055101+00:00",
+  "model": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+  "upstream_host": "api.siliconflow.cn",
+  "fixture_notice": "AI-generated, visibly labeled simulation; not real incidents. Successful calls validate connectivity and workflow, not real-world accuracy.",
+  "proof_runs": [
+    {
+      "event_id": "eedb8b573c814900bb218c26c5a91ec3",
+      "proof": {
+        "id": "2311d2dc36ef44aa94ff6481cb1b8cfe",
+        "status": "succeeded",
+        "material_version": 1,
+        "stale": false,
+        "model": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+        "started_at": "2026-10-03T14:28:26.996657+00:00",
+        "finished_at": "2026-10-03T14:28:52.701012+00:00",
+        "steps": [
+          {
+            "key": "material",
+            "state": "pass",
+            "message": "图片已保存，点位配置有效",
+            "evidence": [
+              {
+                "label": "照片",
+                "value": "1 张已保存图片",
+                "source": "system"
+              },
+              {
+                "label": "点位来源",
+                "value": "秦岭示范步道·入口",
+                "source": "visitor"
+              },
+              {
+                "label": "时间来源",
+                "value": "服务端收到投稿：2026-10-03T14:28:26.978592+00:00",
+                "source": "system"
+              },
+              {
+                "label": "无法确认",
+                "value": "未验证拍摄地点、拍摄时间或照片真实性",
+                "source": "system"
+              }
+            ]
+          },
+          {
+            "key": "content",
+            "state": "pass",
+            "message": "入口休息区垃圾桶旁地面有散落的塑料瓶、包装袋等垃圾。",
+            "evidence": [
+              {
+                "label": "可见类别",
+                "value": "litter",
+                "source": "model"
+              },
+              {
+                "label": "可见依据",
+                "value": "石凳",
+                "source": "model"
+              },
+              {
+                "label": "可见依据",
+                "value": "木制护栏",
+                "source": "model"
+              },
+              {
+                "label": "可见依据",
+                "value": "黑色垃圾桶",
+                "source": "model"
+              },
+              {
+                "label": "可见依据",
+                "value": "散落的塑料瓶",
+                "source": "model"
+              },
+              {
+                "label": "可见依据",
+                "value": "散落的包装袋",
+                "source": "model"
+              },
+              {
+                "label": "可见依据",
+                "value": "散落的纸杯",
+                "source": "model"
+              },
+              {
+                "label": "可见依据",
+                "value": "散落的纸巾",
+                "source": "model"
+              },
+              {
+                "label": "可见依据",
+                "value": "石板地面",
+                "source": "model"
+              }
+            ]
+          },
+          {
+            "key": "association",
+            "state": "pass",
+            "message": "未找到符合范围的关联候选",
+            "evidence": [
+              {
+                "label": "比对范围",
+                "value": "同景区、同点位、同演示属性，最近投稿在2小时内",
+                "source": "system"
+              },
+              {
+                "label": "重复照片",
+                "value": "不构成独立拍摄或人数证明",
+                "source": "system"
+              }
+            ]
+          },
+          {
+            "key": "decision",
+            "state": "pass",
+            "message": "存在可见环境线索，建议景区审核并安排处理。",
+            "evidence": [
+              {
+                "label": "建议部门",
+                "value": "保洁队",
+                "source": "model"
+              }
+            ]
+          }
+        ],
+        "conclusion": {
+          "kind": "process",
+          "reason": "存在可见环境线索，建议景区审核并安排处理。"
+        },
+        "error": null
+      },
+      "analyses": [
+        {
+          "id": "21d0749ffe7b498497c65188a46df7e2",
+          "version": 1,
+          "kind": "report",
+          "material_version": 1,
+          "status": "succeeded",
+          "model": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+          "started_at": "2026-10-03T14:28:27.050920+00:00",
+          "finished_at": "2026-10-03T14:28:52.596373+00:00",
+          "stale": false,
+          "input_snapshot": {
+            "original_images": [
+              {
+                "id": "f6584c6193bb45d79620970eccaa622d",
+                "url": "/api/images/f6584c6193bb45d79620970eccaa622d",
+                "content_type": "image/jpeg",
+                "size": 524164
+              }
+            ],
+            "resolution_images": [],
+            "description": "模拟演示：入口休息区垃圾桶旁有散落垃圾。",
+            "point_id": "trail-entrance",
+            "resolution_note": ""
+          },
+          "result": {
+            "title": "入口休息区垃圾散落",
+            "summary": "入口休息区垃圾桶旁地面有散落的塑料瓶、包装袋等垃圾。",
+            "category": "litter",
+            "visible_observations": [
+              "石凳",
+              "木制护栏",
+              "黑色垃圾桶",
+              "散落的塑料瓶",
+              "散落的包装袋",
+              "散落的纸杯",
+              "散落的纸巾",
+              "石板地面"
+            ],
+            "missing_information": [],
+            "follow_up_questions": [],
+            "recommendations": [
+              "安排保洁清运",
+              "图片左上角标注为'模拟演示·非真实事件'，该场景可能为模拟而非真实发生。"
+            ],
+            "suggested_department": "保洁队",
+            "verdict": "ok"
+          },
+          "error": null
+        }
+      ],
+      "merged_into": null
+    },
+    {
+      "event_id": "1923f46ed4f145ce82c4090ba2b1acf3",
+      "proof": {
+        "id": "6b47056f12cc4e9a93c0863752d63f8e",
+        "status": "succeeded",
+        "material_version": 1,
+        "stale": false,
+        "model": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+        "started_at": "2026-10-03T14:28:53.110829+00:00",
+        "finished_at": "2026-10-03T14:29:11.508505+00:00",
+        "steps": [
+          {
+            "key": "material",
+            "state": "pass",
+            "message": "图片已保存，点位配置有效",
+            "evidence": [
+              {
+                "label": "照片",
+                "value": "1 张已保存图片",
+                "source": "system"
+              },
+              {
+                "label": "点位来源",
+                "value": "秦岭示范步道·入口",
+                "source": "visitor"
+              },
+              {
+                "label": "时间来源",
+                "value": "服务端收到投稿：2026-10-03T14:28:53.087767+00:00",
+                "source": "system"
+              },
+              {
+                "label": "无法确认",
+                "value": "未验证拍摄地点、拍摄时间或照片真实性",
+                "source": "system"
+              }
+            ]
+          },
+          {
+            "key": "content",
+            "state": "pass",
+            "message": "垃圾桶旁地面上散落大量垃圾，包括塑料瓶、食品包装和纸杯等，形成明显垃圾堆积。",
+            "evidence": [
+              {
+                "label": "可见类别",
+                "value": "waste_pile",
+                "source": "model"
+              },
+              {
+                "label": "可见依据",
+                "value": "垃圾桶旁地面上有大量垃圾",
+                "source": "model"
+              },
+              {
+                "label": "可见依据",
+                "value": "垃圾包括塑料瓶、食品包装、纸杯和纸巾",
+                "source": "model"
+              },
+              {
+                "label": "可见依据",
+                "value": "垃圾堆积在垃圾桶附近",
+                "source": "model"
+              },
+              {
+                "label": "可见依据",
+                "value": "地面为石板铺成",
+                "source": "model"
+              },
+              {
+                "label": "可见依据",
+                "value": "背景有山峦和树木",
+                "source": "model"
+              }
+            ]
+          },
+          {
+            "key": "association",
+            "state": "attention",
+            "message": "找到 1 件候选，等待管理员确认",
+            "evidence": [
+              {
+                "label": "比对范围",
+                "value": "同景区、同点位、同演示属性，最近投稿在2小时内",
+                "source": "system"
+              },
+              {
+                "label": "重复照片",
+                "value": "不构成独立拍摄或人数证明",
+                "source": "system"
+              }
+            ]
+          },
+          {
+            "key": "decision",
+            "state": "pass",
+            "message": "存在可能关联的线索，请管理员查看依据后确认归并。",
+            "evidence": [
+              {
+                "label": "建议部门",
+                "value": "保洁队",
+                "source": "model"
+              }
+            ]
+          }
+        ],
+        "conclusion": {
+          "kind": "merge",
+          "reason": "存在可能关联的线索，请管理员查看依据后确认归并。"
+        },
+        "error": null
+      },
+      "analyses": [
+        {
+          "id": "db64531e6e0e497a855f3843c15c2a51",
+          "version": 1,
+          "kind": "report",
+          "material_version": 1,
+          "status": "succeeded",
+          "model": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+          "started_at": "2026-10-03T14:28:53.181791+00:00",
+          "finished_at": "2026-10-03T14:29:11.349191+00:00",
+          "stale": false,
+          "input_snapshot": {
+            "original_images": [
+              {
+                "id": "812931b343264c78be36414f2412dec9",
+                "url": "/api/images/812931b343264c78be36414f2412dec9",
+                "content_type": "image/jpeg",
+                "size": 524164
+              }
+            ],
+            "resolution_images": [],
+            "description": "模拟演示：同一张照片再次投稿，用于重复线索测试。",
+            "point_id": "trail-entrance",
+            "resolution_note": ""
+          },
+          "result": {
+            "title": "垃圾桶旁垃圾堆积",
+            "summary": "垃圾桶旁地面上散落大量垃圾，包括塑料瓶、食品包装和纸杯等，形成明显垃圾堆积。",
+            "category": "waste_pile",
+            "visible_observations": [
+              "垃圾桶旁地面上有大量垃圾",
+              "垃圾包括塑料瓶、食品包装、纸杯和纸巾",
+              "垃圾堆积在垃圾桶附近",
+              "地面为石板铺成",
+              "背景有山峦和树木"
+            ],
+            "missing_information": [],
+            "follow_up_questions": [],
+            "recommendations": [
+              "安排保洁清运",
+              "图片左上角标注'模拟演示·非真实事件'，该场景可能为测试用例，非真实发生的环境问题。",
+              "仅根据单张图片判断，无法确认垃圾堆积的持续时间及原因。"
+            ],
+            "suggested_department": "保洁队",
+            "verdict": "ok"
+          },
+          "error": null
+        }
+      ],
+      "merged_into": null
+    }
+  ],
+  "passed": true,
+  "duplicate_automatically_merged": false,
+  "rectification": {
+    "id": "d16cc97084e743979d1dd62909ded8d4",
+    "version": 2,
+    "kind": "resolution",
+    "material_version": 2,
+    "status": "succeeded",
+    "model": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+    "started_at": "2026-10-03T14:29:59.332285+00:00",
+    "finished_at": "2026-10-03T14:30:18.001129+00:00",
+    "stale": false,
+    "input_snapshot": {
+      "original_images": [
+        {
+          "id": "f6584c6193bb45d79620970eccaa622d",
+          "url": "/api/images/f6584c6193bb45d79620970eccaa622d",
+          "content_type": "image/jpeg",
+          "size": 524164
+        }
+      ],
+      "resolution_images": [
+        {
+          "id": "b91ee5f3a55f4200befd19c7a18ba07e",
+          "url": "/api/images/b91ee5f3a55f4200befd19c7a18ba07e",
+          "content_type": "image/jpeg",
+          "size": 485677
+        }
+      ],
+      "description": "模拟演示：入口休息区垃圾桶旁有散落垃圾。",
+      "point_id": "trail-entrance",
+      "resolution_note": "模拟场景：提交同机位清理后的测试照片。",
+      "group_images": [
+        {
+          "id": "f6584c6193bb45d79620970eccaa622d",
+          "url": "/api/images/f6584c6193bb45d79620970eccaa622d",
+          "content_type": "image/jpeg",
+          "size": 524164
+        },
+        {
+          "id": "23d035c29153425dbb911e064e94a517",
+          "url": "/api/images/23d035c29153425dbb911e064e94a517",
+          "content_type": "image/jpeg",
+          "size": 590994
+        }
+      ],
+      "relationship_version": 3
+    },
+    "result": {
+      "visible_changes": [
+        "地面上的垃圾已清理干净",
+        "垃圾桶周围无散落废弃物"
+      ],
+      "remaining_issues": [],
+      "uncertainties": [],
+      "acceptance_recommendation": "整改后地面垃圾已被清理，现场环境整洁。",
+      "suggestion": "recommend_accept",
+      "same_image": false,
+      "reviewed_images": [
+        {
+          "id": "f6584c6193bb45d79620970eccaa622d",
+          "url": "/api/images/f6584c6193bb45d79620970eccaa622d",
+          "content_type": "image/jpeg",
+          "size": 524164
+        },
+        {
+          "id": "23d035c29153425dbb911e064e94a517",
+          "url": "/api/images/23d035c29153425dbb911e064e94a517",
+          "content_type": "image/jpeg",
+          "size": 590994
+        }
+      ],
+      "before_total": 2
+    },
+    "error": null
+  },
+  "same_image_guard": {
+    "id": "659321ffa6374efeabd9d09197d8af6e",
+    "version": 1,
+    "kind": "resolution",
+    "material_version": 2,
+    "status": "succeeded",
+    "model": "system:sha256",
+    "started_at": "2026-10-03T14:30:35.057279+00:00",
+    "finished_at": "2026-10-03T14:30:35.068825+00:00",
+    "stale": false,
+    "input_snapshot": {
+      "original_images": [
+        {
+          "id": "6051b56d646a4181974569706df1f936",
+          "url": "/api/images/6051b56d646a4181974569706df1f936",
+          "content_type": "image/jpeg",
+          "size": 524164
+        }
+      ],
+      "resolution_images": [
+        {
+          "id": "1ee4c0fe5ed345a9932850fff3ca4e00",
+          "url": "/api/images/1ee4c0fe5ed345a9932850fff3ca4e00",
+          "content_type": "image/jpeg",
+          "size": 524164
+        }
+      ],
+      "description": "模拟演示：同图整改检查的隔离负例。",
+      "point_id": "trail-entrance",
+      "resolution_note": "负例：未提交新的整改证据。",
+      "group_images": [
+        {
+          "id": "6051b56d646a4181974569706df1f936",
+          "url": "/api/images/6051b56d646a4181974569706df1f936",
+          "content_type": "image/jpeg",
+          "size": 524164
+        }
+      ],
+      "relationship_version": 1
+    },
+    "result": {
+      "visible_changes": [],
+      "remaining_issues": [],
+      "uncertainties": [
+        "整改照片与整改前照片完全重复，未提供新的整改证据"
+      ],
+      "acceptance_recommendation": "无法依据重复照片确认整改，请补充新照片或人工现场验收。",
+      "suggestion": "need_human",
+      "same_image": true,
+      "reviewed_images": [],
+      "before_total": 1
+    },
+    "error": null
+  },
+  "browser_verified": true,
+  "finished_at": "2026-10-03T14:30:35.105007+00:00",
+  "upstream_calls": [
+    {
+      "ts": "2026-10-03T14:28:52.593913+00:00",
+      "op": "analyze_report",
+      "model": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+      "ok": true,
+      "latency_ms": 25516,
+      "attempt": 1,
+      "images": 1
+    },
+    {
+      "ts": "2026-10-03T14:29:11.346620+00:00",
+      "op": "analyze_report",
+      "model": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+      "ok": true,
+      "latency_ms": 18141,
+      "attempt": 1,
+      "images": 1
+    },
+    {
+      "ts": "2026-10-03T14:29:28.992540+00:00",
+      "op": "analyze_report",
+      "model": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+      "ok": true,
+      "latency_ms": 14375,
+      "attempt": 1,
+      "images": 1
+    },
+    {
+      "ts": "2026-10-03T14:29:52.366861+00:00",
+      "op": "compare_reports",
+      "model": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+      "ok": true,
+      "latency_ms": 23264,
+      "attempt": 1,
+      "images": 2
+    },
+    {
+      "ts": "2026-10-03T14:30:17.998122+00:00",
+      "op": "review_resolution",
+      "model": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+      "ok": true,
+      "latency_ms": 18639,
+      "attempt": 1,
+      "images": 3
+    }
+  ]
+}

@@ -89,6 +89,50 @@ PRAGMA user_version=2;
 COMMIT;
 """
 
+VISITOR_UPGRADE = """
+BEGIN IMMEDIATE;
+CREATE TABLE users (
+ id TEXT PRIMARY KEY, username TEXT UNIQUE NOT NULL, nickname TEXT NOT NULL,
+ password_hash TEXT NOT NULL, created_at TEXT NOT NULL
+);
+CREATE TABLE visitor_sessions (
+ token_hash TEXT PRIMARY KEY, user_id TEXT NOT NULL REFERENCES users(id),
+ csrf_token TEXT NOT NULL, expires_at TEXT NOT NULL
+);
+ALTER TABLE events ADD COLUMN owner_id TEXT REFERENCES users(id);
+ALTER TABLE events ADD COLUMN legacy_access INTEGER NOT NULL DEFAULT 1;
+ALTER TABLE postcards ADD COLUMN owner_id TEXT REFERENCES users(id);
+ALTER TABLE postcards ADD COLUMN legacy_access INTEGER NOT NULL DEFAULT 1;
+ALTER TABLE uploads ADD COLUMN owner_id TEXT REFERENCES users(id);
+ALTER TABLE uploads ADD COLUMN access_mode TEXT NOT NULL DEFAULT 'legacy';
+CREATE INDEX events_owner ON events(owner_id,created_at);
+CREATE INDEX postcards_owner ON postcards(owner_id,created_at);
+CREATE TABLE explorations (
+ user_id TEXT NOT NULL REFERENCES users(id), scenic_id TEXT NOT NULL, created_at TEXT NOT NULL,
+ PRIMARY KEY(user_id,scenic_id)
+);
+CREATE TABLE contribution_reviews (
+ event_id TEXT PRIMARY KEY REFERENCES events(id), decision TEXT NOT NULL,
+ note TEXT NOT NULL, updated_at TEXT NOT NULL
+);
+CREATE TABLE rewards (
+ id TEXT PRIMARY KEY, user_id TEXT NOT NULL REFERENCES users(id), kind TEXT NOT NULL,
+ reference TEXT NOT NULL, label TEXT NOT NULL, points INTEGER NOT NULL,
+ active INTEGER NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
+ UNIQUE(user_id,kind,reference)
+);
+CREATE TABLE reward_changes (
+ id INTEGER PRIMARY KEY AUTOINCREMENT, reward_id TEXT NOT NULL REFERENCES rewards(id),
+ delta INTEGER NOT NULL, note TEXT NOT NULL, created_at TEXT NOT NULL
+);
+CREATE TABLE badges (
+ user_id TEXT NOT NULL REFERENCES users(id), badge_id TEXT NOT NULL,
+ active INTEGER NOT NULL, earned_at TEXT NOT NULL, PRIMARY KEY(user_id,badge_id)
+);
+PRAGMA user_version=3;
+COMMIT;
+"""
+
 
 class Database:
     def __init__(self, data_dir: Path):
@@ -102,16 +146,18 @@ class Database:
         with self.connect() as conn:
             conn.execute("PRAGMA journal_mode=WAL")
             version = conn.execute("PRAGMA user_version").fetchone()[0]
-            if version not in (0, 1, 2):
+            if version not in (0, 1, 2, 3):
                 raise RuntimeError("不支持此数据库版本，请使用匹配版本的应用")
-            if version == 1:
+            if version in (1, 2):
                 backup_dir = self.data_dir / "backups"
                 backup_dir.mkdir(exist_ok=True)
-                with sqlite3.connect(backup_dir / f"before-v2-{uuid4().hex}.sqlite3") as backup:
+                with sqlite3.connect(backup_dir / f"before-v3-{uuid4().hex}.sqlite3") as backup:
                     conn.backup(backup)
             conn.executescript(SCHEMA)
             if version < 2:
                 conn.executescript(UPGRADE)
+            if version < 3:
+                conn.executescript(VISITOR_UPGRADE)
         with self.transaction() as conn:
             interrupted = conn.execute("SELECT * FROM analyses WHERE status='running'").fetchall()
             for run in interrupted:
@@ -181,6 +227,12 @@ class Database:
         """Return scoped submission materials and a sanitized shared governance summary."""
         event = dict(self.row(conn, event_id))
         event.pop("token_hash")
+        event.pop("owner_id", None)
+        event.pop("legacy_access", None)
+        review = conn.execute(
+            "SELECT * FROM contribution_reviews WHERE event_id=?", (event_id,)
+        ).fetchone()
+        event["contribution_review"] = dict(review) if review else None
         event["is_demo"] = bool(event["is_demo"])
         for key in ("original_images", "resolution_images"):
             event[key] = json.loads(event[key])
