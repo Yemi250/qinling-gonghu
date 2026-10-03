@@ -1,0 +1,502 @@
+/* EcoProof visitor display components (VisitorProofCard, SharedCaseFeedback).
+   Every rule stays under the .ecoproof prefix; colours and fonts reuse the
+   existing tokens, so inside .journey-page the card follows the warm palette
+   and elsewhere the cool paper palette. No :root, body or global button edits. */
+
+.ecoproof {
+  --eco-accent: var(--teal-700);
+  --eco-accent-soft: var(--teal-50);
+  --eco-line: var(--rule-hair);
+  display: grid;
+  gap: var(--space-4);
+  width: 100%;
+  max-width: 640px;
+  min-width: 0;
+  padding: var(--space-5);
+  background: var(--bg-raised);
+  box-shadow: var(--shadow-sheet);
+  color: var(--text);
+  font-size: var(--text-small);
+  line-height: var(--leading-caption);
+}
+.ecoproof--accent {
+  --eco-accent: var(--teal-700);
+  --eco-accent-soft: var(--teal-50);
+}
+.ecoproof--attention {
+  --eco-accent: var(--amber-700);
+  --eco-accent-soft: var(--amber-50);
+}
+.ecoproof--calm {
+  --eco-accent: var(--pine-700);
+  --eco-accent-soft: var(--pine-100);
+}
+
+.ecoproof__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-3);
+  min-width: 0;
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--rule-ink);
+}
+.ecoproof__eyebrow {
+  color: var(--text-3);
+  font-size: var(--text-micro);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.14em;
+}
+.ecoproof__run {
+  flex: none;
+  padding: 3px 10px;
+  border: 1px solid var(--rule-hair);
+  color: var(--text-2);
+  font-size: var(--text-micro);
+  letter-spacing: var(--tracking-cjk-label);
+  white-space: nowrap;
+}
+.ecoproof__run--running {
+  border-color: var(--teal-500);
+  background: var(--teal-50);
+  color: var(--teal-800);
+  animation: ecoproof-breathe 1.8s var(--ease-paper) infinite;
+}
+.ecoproof__run--succeeded {
+  border-color: var(--teal-600);
+  background: var(--teal-50);
+  color: var(--teal-800);
+}
+.ecoproof__run--partial {
+  border-color: var(--amber-500);
+  background: var(--amber-50);
+  color: var(--amber-700);
+}
+.ecoproof__run--failed {
+  border-color: var(--red-500);
+  background: var(--red-50);
+  color: var(--red-700);
+}
+
+.ecoproof__conclusion {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-4);
+  border: 1px solid var(--eco-accent);
+  background: var(--eco-accent-soft);
+}
+.ecoproof__conclusion-kind {
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  font-weight: var(--weight-semibold);
+  color: var(--eco-accent);
+  letter-spacing: var(--tracking-display);
+}
+.ecoproof__conclusion-reason {
+  color: var(--text-2);
+  overflow-wrap: anywhere;
+}
+
+.ecoproof__band {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--rule-hair);
+  background: var(--paper-50);
+  color: var(--text-2);
+}
+.ecoproof__band svg {
+  flex: none;
+}
+.ecoproof__band--stale {
+  border-color: var(--amber-100);
+  background: var(--amber-50);
+  color: var(--amber-700);
+}
+.ecoproof__band--error {
+  border-color: var(--red-500);
+  background: var(--red-50);
+  color: var(--red-700);
+}
+.ecoproof__band--running {
+  border-color: var(--teal-100);
+  background: var(--teal-50);
+  color: var(--teal-800);
+}
+
+.ecoproof__stages {
+  display: grid;
+  gap: 0;
+}
+.ecoproof__stage {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: start;
+  padding: var(--space-3) 0;
+  border-top: 1px solid var(--eco-line);
+  min-width: 0;
+}
+.ecoproof__stage:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+.ecoproof__stage:last-child {
+  padding-bottom: 0;
+}
+.ecoproof__mark {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  margin-top: 1px;
+  border: 1px solid var(--ink-300);
+  border-radius: var(--radius-round);
+  color: var(--paper-0);
+  background: transparent;
+}
+.ecoproof__mark--running {
+  border-color: var(--teal-500);
+  color: var(--teal-700);
+  animation: ecoproof-breathe 1.8s var(--ease-paper) infinite;
+}
+.ecoproof__mark--pass {
+  border-color: var(--teal-600);
+  background: var(--teal-600);
+}
+.ecoproof__mark--attention {
+  border-color: var(--amber-500);
+  background: var(--amber-50);
+  color: var(--amber-700);
+}
+.ecoproof__mark--failed {
+  border-color: var(--red-500);
+  background: var(--red-50);
+  color: var(--red-700);
+}
+.ecoproof__mark--skipped {
+  border-style: dashed;
+  border-color: var(--stone-300);
+}
+.ecoproof__stage-body {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.ecoproof__stage-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2) var(--space-3);
+  min-width: 0;
+}
+.ecoproof__stage-title {
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-cjk-label);
+}
+.ecoproof__chip {
+  color: var(--text-3);
+  font-size: var(--text-micro);
+  letter-spacing: var(--tracking-cjk-label);
+  white-space: nowrap;
+}
+.ecoproof__chip--running {
+  color: var(--teal-700);
+}
+.ecoproof__chip--pass {
+  color: var(--teal-700);
+}
+.ecoproof__chip--attention {
+  color: var(--amber-700);
+}
+.ecoproof__chip--failed {
+  color: var(--red-700);
+}
+.ecoproof__chip--skipped {
+  color: var(--stone-500);
+}
+.ecoproof__stage-message {
+  color: var(--text-2);
+  overflow-wrap: anywhere;
+}
+
+.ecoproof__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+.ecoproof__action {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 10px 20px;
+  border: 1px solid var(--eco-accent);
+  background: var(--eco-accent);
+  color: var(--paper-0);
+  font-size: var(--text-caption);
+  letter-spacing: 0.08em;
+  transition:
+    background var(--dur-2) var(--ease-paper),
+    color var(--dur-2) var(--ease-paper);
+}
+.ecoproof__action:hover {
+  filter: brightness(1.08);
+}
+.ecoproof__action--quiet {
+  background: transparent;
+  color: var(--eco-accent);
+}
+.ecoproof__action--quiet:hover {
+  background: var(--eco-accent-soft);
+  filter: none;
+}
+
+.ecoproof__details {
+  min-width: 0;
+  border-top: 1px solid var(--eco-line);
+  padding-top: var(--space-3);
+}
+.ecoproof__details summary {
+  width: fit-content;
+  color: var(--text-2);
+  font-size: var(--text-caption);
+  letter-spacing: var(--tracking-cjk-label);
+  cursor: pointer;
+}
+.ecoproof__group {
+  margin-top: var(--space-3);
+}
+.ecoproof__group-title {
+  color: var(--text-3);
+  font-size: var(--text-micro);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-cjk-label);
+}
+.ecoproof__evidence {
+  margin: 0;
+}
+.ecoproof__fact {
+  display: grid;
+  grid-template-columns: 7.5em minmax(0, 1fr) auto;
+  gap: var(--space-2) var(--space-3);
+  align-items: baseline;
+  padding: var(--space-2) 0;
+  border-top: 1px dashed var(--eco-line);
+}
+.ecoproof__group .ecoproof__fact:first-of-type {
+  border-top: 0;
+}
+.ecoproof__fact-label {
+  color: var(--text-3);
+  font-size: var(--text-micro);
+}
+.ecoproof__fact-value {
+  margin: 0;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+.ecoproof__fact-source {
+  margin: 0;
+  justify-self: end;
+  padding: 1px 8px;
+  border: 1px solid var(--rule-hair);
+  color: var(--text-3);
+  font-size: var(--text-micro);
+  white-space: nowrap;
+}
+.ecoproof__fact--model .ecoproof__fact-source {
+  border-color: var(--teal-100);
+  background: var(--teal-50);
+  color: var(--teal-800);
+}
+.ecoproof__fact--visitor .ecoproof__fact-source {
+  border-color: var(--amber-100);
+  background: var(--amber-50);
+  color: var(--amber-700);
+}
+
+.ecoproof__foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-1) var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--rule-hair);
+  color: var(--text-3);
+  font-size: var(--text-micro);
+  letter-spacing: 0.04em;
+}
+.ecoproof__model {
+  overflow-wrap: anywhere;
+}
+.ecoproof__time {
+  white-space: nowrap;
+}
+
+.ecoproof__spin {
+  animation: ecoproof-spin 1s linear infinite;
+}
+
+/* Shared-case echo. Same prefix family, own block. */
+.ecoproof-share {
+  display: grid;
+  gap: var(--space-4);
+  width: 100%;
+  max-width: 640px;
+  min-width: 0;
+  padding: var(--space-5);
+  background: var(--bg-raised);
+  box-shadow: var(--shadow-sheet);
+  color: var(--text);
+  font-size: var(--text-small);
+  line-height: var(--leading-caption);
+}
+.ecoproof-share__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-3);
+  min-width: 0;
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--rule-ink);
+}
+.ecoproof-share__eyebrow {
+  color: var(--text-3);
+  font-size: var(--text-micro);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.14em;
+}
+.ecoproof-share__code {
+  color: var(--text-2);
+  font-size: var(--text-micro);
+  letter-spacing: 0.06em;
+  overflow-wrap: anywhere;
+}
+.ecoproof-share__lead {
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-display);
+}
+.ecoproof-share__counts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin: 0;
+}
+.ecoproof-share__count {
+  display: grid;
+  gap: 2px;
+  padding: var(--space-3);
+  border: 1px solid var(--rule-hair);
+  background: var(--paper-50);
+  min-width: 0;
+}
+.ecoproof-share__count dt {
+  order: 2;
+  color: var(--text-3);
+  font-size: var(--text-micro);
+  letter-spacing: var(--tracking-cjk-label);
+}
+.ecoproof-share__count dd {
+  margin: 0;
+  color: var(--text);
+  font-size: var(--text-h2);
+  line-height: var(--leading-tight);
+  font-variant-numeric: tabular-nums;
+}
+.ecoproof-share__point {
+  color: var(--text-2);
+  font-size: var(--text-caption);
+}
+.ecoproof-share__milestones {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding-left: var(--space-4);
+  border-left: 1px solid var(--rule-hair);
+}
+.ecoproof-share__milestone {
+  position: relative;
+  display: grid;
+  gap: 2px;
+}
+.ecoproof-share__milestone::before {
+  content: "";
+  position: absolute;
+  left: calc(-1 * var(--space-4) - 3.5px);
+  top: 0.55em;
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-round);
+  background: var(--eco-accent, var(--teal-600));
+}
+.ecoproof-share__milestone-time {
+  color: var(--text-3);
+  font-size: var(--text-micro);
+}
+.ecoproof-share__milestone-body strong {
+  font-weight: var(--weight-medium);
+}
+.ecoproof-share__milestone-body p {
+  color: var(--text-2);
+  font-size: var(--text-caption);
+  overflow-wrap: anywhere;
+}
+.ecoproof-share__closing {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border: 1px solid var(--rule-hair);
+  background: var(--paper-50);
+}
+.ecoproof-share__closing-note {
+  color: var(--text-2);
+  overflow-wrap: anywhere;
+}
+.ecoproof-share__closing-time {
+  color: var(--text-3);
+  font-size: var(--text-micro);
+}
+
+@keyframes ecoproof-breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+@keyframes ecoproof-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 420px) {
+  .ecoproof,
+  .ecoproof-share {
+    padding: var(--space-4);
+  }
+  .ecoproof__fact {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .ecoproof__fact-label {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ecoproof *,
+  .ecoproof-share * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
