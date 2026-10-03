@@ -59,6 +59,7 @@ uv run uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 --workers 1 --n
 | 配置 | 含义 |
 |---|---|
 | DEMO_ADMIN_USERNAME / DEMO_ADMIN_PASSWORD | 管理员演示账号，密码不写入数据库或前端 |
+| DEMO_ADMIN_MIN_PASSWORD_LENGTH | 默认最少12位；本机演示可显式调整，最低8位，修改后重启服务 |
 | DATA_DIR | SQLite 和图片目录，默认仓库 data/ |
 | AI_BASE_URL / AI_MODEL / AI_API_KEY | 仅服务端使用，默认百炼兼容地址和 qwen3-vl-plus；需配置可用模型凭据 |
 | AI_TIMEOUT_SECONDS | 单次分析总超时，默认 60 秒 |

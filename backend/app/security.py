@@ -52,9 +52,11 @@ def event_actor(request: Request, conn, row) -> str:
 
 
 def create_session(settings, conn, username, password):
+    """Authenticate the configured demo account using its explicit password-length policy."""
     configured = settings.demo_admin_password
-    if len(configured) < 12 or configured.startswith("replace-"):
-        raise APIError(503, "admin_not_configured", "请在服务端配置至少 12 位演示账号密码")
+    minimum = settings.demo_admin_min_password_length
+    if len(configured) < minimum or configured.startswith("replace-"):
+        raise APIError(503, "admin_not_configured", f"请在服务端配置至少 {minimum} 位演示账号密码")
     if not (
         secrets.compare_digest(digest(username), digest(settings.demo_admin_username))
         and secrets.compare_digest(digest(password), digest(configured))

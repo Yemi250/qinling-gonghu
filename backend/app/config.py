@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     frontend_dist: Path = ROOT / "frontend" / "dist"
     demo_admin_username: str = "admin"
     demo_admin_password: str = Field(default="", repr=False)
+    demo_admin_min_password_length: int = Field(default=12, ge=8, le=128)
     admin_session_hours: int = Field(default=8, ge=1, le=24)
     ai_base_url: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"
     ai_model: str = "qwen3-vl-plus"
