@@ -1,0 +1,572 @@
+/* EcoProof 管理端面板样式。只作用于 .ecoproof- 前缀的类，
+   不修改 :root、body、按钮与地图等任何共享样式。
+   配色沿用工作台的暖纸、陶土与雾蓝：机器信息用雾蓝，人工动作用陶土。 */
+.ecoproof-panel {
+  /* 缺省值与 journey-page 的暖纸主题一致，面板在页面内复用其变量，单独预览也成立 */
+  --eco-bg: var(--bg-raised, #fbf7ed);
+  --eco-bg-deep: #f3ecdb;
+  --eco-ink: var(--text, #493e33);
+  --eco-ink-2: var(--text-2, #7f6f5b);
+  --eco-ink-3: var(--text-3, #9a886d);
+  --eco-rule: var(--rule-hair, #dbcfbb);
+  --eco-rule-strong: var(--rule-ink, #8a765a);
+  --eco-clay: #8b7350;
+  --eco-clay-deep: #6d5a42;
+  --eco-clay-text: #92744a;
+  --eco-clay-soft: #a68a62;
+  --eco-mist: #5f7186;
+  --eco-mist-deep: #46586c;
+  --eco-mist-bg: #edf1f4;
+  --eco-mist-rule: #b9c6d1;
+  --eco-green: #5d6f4a;
+  --eco-green-bg: #eaeee0;
+  --eco-green-rule: #a3b18c;
+  --eco-amber: #8a5a0c;
+  --eco-amber-bg: #f6ecd6;
+  --eco-amber-rule: #d4b06a;
+  --eco-red: #9c3a24;
+  --eco-red-bg: #f1e1d8;
+  --eco-red-rule: #b9866a;
+
+  font-family: var(--font-sans, "Noto Sans SC Variable", sans-serif);
+  color: var(--eco-ink);
+  background: var(--eco-bg);
+  border: 1px solid var(--eco-rule);
+  padding: 25px;
+  margin-top: 22px;
+  overflow-wrap: anywhere;
+}
+.ecoproof-panel :focus-visible {
+  outline: 2px solid var(--eco-clay-soft);
+  outline-offset: 2px;
+}
+.ecoproof-panel h3,
+.ecoproof-panel h4 {
+  font-family: var(--font-display, "Noto Serif SC Variable", serif);
+  font-weight: 450;
+  margin: 0;
+}
+.ecoproof-panel h5,
+.ecoproof-panel p {
+  margin: 0;
+}
+.ecoproof-panel code {
+  font-family: var(--font-mono, "IBM Plex Mono", "Noto Sans SC Variable", monospace);
+  font-size: 0.92em;
+}
+
+/* ---------- 面头 ---------- */
+.ecoproof-head {
+  margin-bottom: 16px;
+}
+.ecoproof-eyebrow {
+  display: block;
+  letter-spacing: 0.16em;
+  font-size: 9px;
+  color: var(--eco-ink-3);
+  font-weight: 500;
+}
+.ecoproof-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 22px;
+  letter-spacing: 0.04em;
+  margin: 8px 0 6px;
+}
+.ecoproof-title svg {
+  color: var(--eco-clay-soft);
+}
+.ecoproof-hint {
+  font-size: 11px;
+  line-height: 1.9;
+  color: var(--eco-ink-2);
+  max-width: 560px;
+}
+
+/* ---------- 提示条 ---------- */
+.ecoproof-error,
+.ecoproof-stale,
+.ecoproof-note,
+.ecoproof-scope,
+.ecoproof-scope-warn,
+.ecoproof-same-image {
+  font-size: 11px;
+  line-height: 1.9;
+  padding: 10px 12px;
+  margin-top: 12px;
+}
+.ecoproof-error {
+  background: var(--eco-red-bg);
+  border-left: 2px solid var(--eco-red-rule);
+  color: #7c3a28;
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+.ecoproof-error svg {
+  flex: none;
+  transform: translateY(2px);
+}
+.ecoproof-stale {
+  background: var(--eco-amber-bg);
+  border: 1px dashed var(--eco-amber-rule);
+  color: var(--eco-amber);
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+.ecoproof-stale svg {
+  flex: none;
+  transform: translateY(2px);
+}
+.ecoproof-note {
+  background: var(--eco-amber-bg);
+  border-left: 2px solid var(--eco-amber-rule);
+  color: var(--eco-amber);
+}
+.ecoproof-scope {
+  border-top: 1px solid var(--eco-rule);
+  color: var(--eco-mist-deep);
+  padding: 10px 0 0;
+  margin-top: 14px;
+}
+.ecoproof-scope-warn {
+  background: var(--eco-mist-bg);
+  border: 1px solid var(--eco-mist-rule);
+  color: var(--eco-mist-deep);
+}
+.ecoproof-same-image {
+  background: var(--eco-red-bg);
+  border: 1px solid var(--eco-red-rule);
+  border-left-width: 3px;
+  color: #7c3a28;
+}
+.ecoproof-same-image p {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+.ecoproof-same-image svg {
+  flex: none;
+  transform: translateY(2px);
+}
+.ecoproof-same-image .ecoproof-meta {
+  margin-top: 6px;
+  color: #92543f;
+}
+
+/* ---------- 共用小元素 ---------- */
+.ecoproof-meta {
+  display: block;
+  font-size: 10px;
+  line-height: 1.8;
+  color: var(--eco-ink-3);
+}
+.ecoproof-meta--mono {
+  font-family: var(--font-mono, "IBM Plex Mono", "Noto Sans SC Variable", monospace);
+  letter-spacing: 0.02em;
+}
+.ecoproof-code {
+  color: var(--eco-clay-text);
+  overflow-wrap: anywhere;
+}
+.ecoproof-label {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--eco-ink-2);
+  margin: 12px 0 4px;
+  font-weight: 500;
+}
+.ecoproof-list {
+  margin: 0;
+  padding-left: 16px;
+  font-size: 11px;
+  line-height: 1.9;
+  color: var(--eco-ink-2);
+}
+.ecoproof-list li + li {
+  margin-top: 2px;
+}
+.ecoproof-list--caution li::marker {
+  color: var(--eco-clay-soft);
+}
+.ecoproof-tag {
+  display: inline-block;
+  margin-left: 10px;
+  padding: 2px 7px;
+  border: 1px solid var(--eco-mist-rule);
+  color: var(--eco-mist-deep);
+  background: var(--eco-mist-bg);
+  font-family: var(--font-sans, "Noto Sans SC Variable", sans-serif);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  vertical-align: 3px;
+}
+.ecoproof-tag--clay {
+  border-color: var(--eco-clay-soft);
+  color: var(--eco-clay-text);
+  background: transparent;
+}
+.ecoproof-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+/* ---------- 按钮：与 .action-buttons 同形 ---------- */
+.ecoproof-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  background: var(--eco-clay);
+  color: #fff7e8;
+  border: 1px solid var(--eco-clay);
+  padding: 10px 13px;
+  font: inherit;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.ecoproof-btn:hover:not(:disabled) {
+  background: var(--eco-clay-deep);
+}
+.ecoproof-btn:disabled {
+  cursor: wait;
+  opacity: 0.5;
+}
+.ecoproof-btn--ghost {
+  background: transparent;
+  color: var(--eco-ink-2);
+  border-color: var(--eco-rule-strong);
+}
+.ecoproof-btn--ghost:hover:not(:disabled) {
+  background: var(--eco-bg-deep);
+  color: var(--eco-ink);
+}
+.ecoproof-btn--mist {
+  background: var(--eco-mist);
+  border-color: var(--eco-mist);
+}
+.ecoproof-btn--mist:hover:not(:disabled) {
+  background: var(--eco-mist-deep);
+}
+.ecoproof-btn--small {
+  padding: 6px 10px;
+  font-size: 10px;
+}
+
+/* ---------- CaseMergePanel ---------- */
+.ecoproof-merged {
+  border: 1px solid var(--eco-rule);
+  border-left: 3px solid var(--eco-clay-soft);
+  background: var(--eco-bg-deep);
+  padding: 14px 16px;
+  margin-top: 14px;
+  font-size: 11px;
+  line-height: 1.9;
+  color: var(--eco-ink-2);
+}
+.ecoproof-merged h4 {
+  font-size: 15px;
+  margin-bottom: 4px;
+}
+.ecoproof-merged .ecoproof-btn {
+  margin-top: 12px;
+}
+.ecoproof-empty {
+  border: 1px dashed var(--eco-rule-strong);
+  color: var(--eco-ink-3);
+  padding: 26px 20px;
+  margin-top: 14px;
+  text-align: center;
+  font-size: 11px;
+  line-height: 1.9;
+}
+.ecoproof-candidates {
+  margin-top: 14px;
+  display: grid;
+  gap: 12px;
+}
+.ecoproof-candidate {
+  border: 1px solid var(--eco-rule);
+  background: var(--eco-bg);
+  transition: border-color 0.2s;
+}
+.ecoproof-candidate.is-selected {
+  border-color: var(--eco-clay-soft);
+  background: var(--eco-bg-deep);
+}
+.ecoproof-candidate__pick {
+  display: block;
+  padding: 13px 16px 11px;
+  cursor: pointer;
+}
+.ecoproof-candidate__pick input {
+  accent-color: var(--eco-clay);
+  width: 14px;
+  height: 14px;
+  margin: 2px 10px 0 0;
+  float: left;
+}
+.ecoproof-candidate.is-selected .ecoproof-candidate__pick input {
+  /* 让选中态的圆点跟随陶土色，避免默认蓝打断暖纸基调 */
+  accent-color: var(--eco-clay-deep);
+}
+.ecoproof-candidate__top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.ecoproof-candidate__title {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.6;
+}
+.ecoproof-relation {
+  flex: none;
+  padding: 2px 8px;
+  border: 1px solid var(--eco-rule-strong);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  color: var(--eco-ink-2);
+  white-space: nowrap;
+}
+.ecoproof-relation--same_issue {
+  border-color: var(--eco-green-rule);
+  background: var(--eco-green-bg);
+  color: var(--eco-green);
+}
+.ecoproof-relation--uncertain {
+  border-style: dashed;
+  border-color: var(--eco-amber-rule);
+  background: var(--eco-amber-bg);
+  color: var(--eco-amber);
+}
+.ecoproof-relation--different {
+  border-color: var(--eco-rule-strong);
+  background: transparent;
+  color: var(--eco-ink-3);
+}
+.ecoproof-candidate .ecoproof-meta {
+  margin-top: 6px;
+}
+.ecoproof-candidate__detail {
+  border-top: 1px dashed var(--eco-rule);
+  padding: 2px 16px 13px;
+  margin: 10px -16px 0;
+  padding-left: 40px;
+  padding-right: 16px;
+}
+.ecoproof-candidate__detail .ecoproof-label {
+  margin-top: 10px;
+}
+.ecoproof-confirm {
+  border: 1px solid var(--eco-clay-soft);
+  border-left-width: 3px;
+  background: var(--eco-bg-deep);
+  padding: 14px 16px;
+  margin-top: 14px;
+  font-size: 11px;
+  line-height: 1.9;
+  color: var(--eco-ink-2);
+}
+
+/* ---------- ResolutionReviewPanel ---------- */
+.ecoproof-compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 4px;
+}
+.ecoproof-col {
+  min-width: 0;
+}
+.ecoproof-col__label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  font-weight: 500;
+  color: var(--eco-clay-text);
+  border-bottom: 1px solid var(--eco-rule);
+  padding-bottom: 6px;
+  margin-bottom: 10px;
+}
+.ecoproof-col__empty {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px dashed var(--eco-rule-strong);
+  color: var(--eco-ink-3);
+  font-size: 11px;
+  padding: 24px 14px;
+}
+.ecoproof-gallery {
+  display: grid;
+  gap: 10px;
+}
+.ecoproof-gallery--multi {
+  grid-template-columns: 1fr 1fr;
+}
+.ecoproof-plate {
+  position: relative;
+  margin: 0;
+  overflow: hidden;
+  background: var(--placeholder-tone, #ddd6c6);
+  box-shadow: inset 0 0 0 1px var(--frame-edge, rgba(21, 34, 29, 0.14));
+}
+.ecoproof-plate img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+.ecoproof-plate__tag {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  background: rgba(58, 49, 38, 0.82);
+  color: #fff7e8;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  padding: 3px 8px;
+}
+
+/* 模型意见：雾蓝纸面，与人工验收分开 */
+.ecoproof-review {
+  border: 1px solid var(--eco-mist-rule);
+  background: var(--eco-mist-bg);
+  padding: 16px;
+  margin-top: 14px;
+}
+.ecoproof-review__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.ecoproof-review__head h4 {
+  font-size: 15px;
+}
+.ecoproof-verdict {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  padding: 3px 10px;
+  border: 1px solid currentColor;
+  white-space: nowrap;
+}
+.ecoproof-verdict--accept {
+  color: var(--eco-green);
+  background: var(--eco-green-bg);
+}
+.ecoproof-verdict--reject {
+  color: var(--eco-red);
+  background: var(--eco-red-bg);
+}
+.ecoproof-verdict--human {
+  color: var(--eco-amber);
+  background: var(--eco-amber-bg);
+}
+.ecoproof-review__section .ecoproof-list {
+  color: var(--eco-mist-deep);
+}
+.ecoproof-review__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  border-top: 1px dashed var(--eco-mist-rule);
+  margin-top: 12px;
+  padding-top: 10px;
+}
+.ecoproof-no-review {
+  border: 1px dashed var(--eco-mist-rule);
+  color: var(--eco-mist-deep);
+  padding: 18px 16px;
+  margin-top: 14px;
+  font-size: 11px;
+  line-height: 1.9;
+}
+.ecoproof-no-review .ecoproof-btn {
+  margin-top: 10px;
+}
+
+/* 人工验收：陶土纸面 */
+.ecoproof-human {
+  border: 1px solid var(--eco-rule);
+  border-top: 2px solid var(--eco-clay-soft);
+  background: var(--eco-bg);
+  padding: 16px;
+  margin-top: 14px;
+}
+.ecoproof-human h4 {
+  font-size: 15px;
+  margin-bottom: 4px;
+}
+.ecoproof-field {
+  display: block;
+  font-size: 11px;
+  color: var(--eco-ink-2);
+  margin-top: 10px;
+}
+.ecoproof-field textarea {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px;
+  border: 1px solid var(--eco-rule);
+  background: var(--eco-bg-deep);
+  margin-top: 8px;
+  font: inherit;
+  font-size: 12px;
+  color: var(--eco-ink);
+  resize: vertical;
+}
+.ecoproof-human .ecoproof-meta {
+  margin-top: 10px;
+}
+
+/* ---------- 响应式 ---------- */
+@media (max-width: 768px) {
+  .ecoproof-panel {
+    padding: 18px;
+  }
+  .ecoproof-compare {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+}
+@media (max-width: 420px) {
+  .ecoproof-panel {
+    padding: 14px;
+  }
+  .ecoproof-gallery--multi {
+    grid-template-columns: 1fr;
+  }
+  .ecoproof-candidate__top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  .ecoproof-review__head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+@media (min-width: 1800px) {
+  .ecoproof-panel {
+    max-width: 1080px;
+  }
+}
