@@ -108,13 +108,20 @@ try {
   results.checks.push("Explorer/card badges and +5/+10 audit details come from real server data");
   for(const width of [320,390,768,1440,2048]){
     await page.setViewportSize({width,height:1064});
+    let baseline;
     for(const tab of ["我的旅程","风景记忆","共护回音","勋章册"]){
       await page.getByRole("button",{name:tab,exact:true}).click();await page.evaluate(()=>document.fonts.ready);
+      await page.evaluate(()=>scrollTo(0,0));
+      const geometry=await page.evaluate(()=>[".passport-page",".passport-cover",".passport-tabs"].map(selector=>{
+        const node=document.querySelector(selector),r=node.getBoundingClientRect();return {x:r.x,width:r.width,y:r.y,font:getComputedStyle(node).fontSize};
+      }));
+      if(baseline)assert.deepEqual(geometry,baseline,`${width} passport columns resize when switching to ${tab}`);else baseline=geometry;
       assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`${width} ${tab} overflow`);
       results.widths.push({width,tab,overflow:false});
     }
     await page.screenshot({path:join(evidence,`passport-${width}.png`),fullPage:true});
   }
+  results.checks.push("All four passport tabs retain identical content, cover and navigation geometry at five viewport widths");
   // Supplement drafts survive the remount caused by an expired account session.
   await page.goto(`${origin}/#/scenic/taibai`,{waitUntil:"networkidle"});
   await page.getByRole("button",{name:"一起照看这里"}).click();

@@ -19,7 +19,7 @@ import "./journey.css";
 import "./home-atlas.css";
 import "./scenic-chapters.css";
 import { useVisitor } from "../passport/VisitorProvider";
-import { ScenicTasks } from "../passport/ScenicTasks";
+import { ScenicExploration } from "../passport/ScenicTasks";
 
 /** A quiet navigation layer shared by the atlas and themed scenic chapters. */
 export function JourneyHeader({ immersive = false }: { immersive?: boolean }) {
@@ -264,6 +264,7 @@ export function ScenicPage() {
                 </span>
                 <ArrowUpRight size={20} />
               </button>
+              <ScenicExploration scene={scene}/>
               <div className="journal-foot">
                 <Feather size={15} />
                 <span>你的善意，会有回音。</span>
@@ -271,7 +272,6 @@ export function ScenicPage() {
               </div>
             </div>
           </section>
-          <ScenicTasks scene={scene} onMemory={()=>participate("memory")} onCare={()=>participate("care")}/>
         </main>
         <JourneyFooter />
       </div>

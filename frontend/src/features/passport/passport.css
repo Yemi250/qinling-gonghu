@@ -29,7 +29,10 @@
 .passport-task-sheet li small {font-size:12px;color:var(--pine);}
 .passport-task-sheet li button {font-size:13px;align-self:flex-end;margin-left:45px;}
 .passport-task-foot {font-size:12px;color:var(--ink-2);line-height:1.7;margin:30px 0 0;}
-.passport-page {max-width:1400px;overflow-wrap:anywhere;}
+.passport-page {width:min(100%,1400px);max-width:1400px;box-sizing:border-box;overflow-wrap:anywhere;}
+.passport-exploration:disabled {opacity:.65;cursor:default;transform:none;}
+.passport-exploration-error {font-size:13px;line-height:1.8;margin:0 0 20px;}
+.passport-exploration-error button {font-size:13px;}
 .passport-shell .journey-canvas {height:auto;min-height:calc(100svh - 24px);background:var(--paper);}
 .passport-shell .passport-cover h1 {font-size:var(--journey-heading-size);}
 .passport-cover {display:flex;align-items:center;justify-content:space-between;gap:24px;padding-bottom:30px;border-bottom:1px solid #d9cebc;}
