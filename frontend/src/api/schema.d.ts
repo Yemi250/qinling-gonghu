@@ -186,7 +186,7 @@ export interface paths {
         put?: never;
         /**
          * Create Postcard
-         * @description Save a scenic photo and return its private retrieval capability once.
+         * @description Save an account-owned scenic memory, retaining the response shape for legacy callers.
          */
         post: operations["create_postcard_api_postcards_post"];
         delete?: never;
@@ -204,7 +204,7 @@ export interface paths {
         };
         /**
          * Get Postcard
-         * @description Read a private memory only with its matching visitor credential.
+         * @description Read the owning account's memory, or a historical record's original capability.
          */
         get: operations["get_postcard_api_postcards__identifier__get"];
         put?: never;

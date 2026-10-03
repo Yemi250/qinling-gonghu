@@ -1746,7 +1746,7 @@
     "/api/postcards": {
       "post": {
         "summary": "Create Postcard",
-        "description": "Save a scenic photo and return its private retrieval capability once.",
+        "description": "Save an account-owned scenic memory, retaining the response shape for legacy callers.",
         "operationId": "create_postcard_api_postcards_post",
         "requestBody": {
           "content": {
@@ -1895,7 +1895,7 @@
     "/api/postcards/{identifier}": {
       "get": {
         "summary": "Get Postcard",
-        "description": "Read a private memory only with its matching visitor credential.",
+        "description": "Read the owning account's memory, or a historical record's original capability.",
         "operationId": "get_postcard_api_postcards__identifier__get",
         "security": [
           {
