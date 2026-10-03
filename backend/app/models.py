@@ -163,7 +163,14 @@ class CreatePostcard(BaseModel):
     """A private scenic memory, independent from environmental work orders."""
 
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
-    scenic_id: Literal["terracotta-demo", "qinling-demo"]
+    scenic_id: Literal[
+        "terracotta-demo",
+        "qinling-demo",
+        "huashan-demo",
+        "baotashan-demo",
+        "hanzhong-demo",
+        "zhenbeitai-demo",
+    ]
     description: str = Field(default="", max_length=4000)
     images: list[ImageClaim] = Field(min_length=1, max_length=1)
 

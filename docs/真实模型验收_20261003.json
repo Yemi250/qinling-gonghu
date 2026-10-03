@@ -1,0 +1,122 @@
+{
+  "started_at": "2026-10-03T04:47:54.279906+00:00",
+  "upstream_host": "api.siliconflow.cn",
+  "model": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+  "isolated_data": "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\gonghu-live-ai-ujjm2xng",
+  "fixture_notice": "AI-generated visual fixtures, not real operational incidents. Before/after deliberately reuse the SAME mountain photo; this verifies connectivity, not successful remediation or recognition accuracy.",
+  "calls": [
+    {
+      "kind": "report",
+      "fixture": "terracotta.png",
+      "sha256": "f5d41ab75f14ce5f1e7d9e8aeaca07a83bcf48250f7eccbec1949a9580867dff",
+      "status": "succeeded",
+      "model": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+      "started_at": "2026-10-03T04:47:54.565549+00:00",
+      "finished_at": "2026-10-03T04:48:03.340210+00:00",
+      "elapsed_ms": 8813,
+      "result": {
+        "title": "兵马俑展厅意境图",
+        "summary": "图片为兵马俑展厅的AI生成意境图，非真实现场拍摄，未见实际景区环境问题。",
+        "category": "unrelated",
+        "visible_observations": [
+          "兵马俑雕像",
+          "展厅建筑结构",
+          "光线效果",
+          "烟雾或尘埃氛围"
+        ],
+        "missing_information": [],
+        "follow_up_questions": [],
+        "recommendations": [
+          "图片为AI生成的意境图，非真实场景，无法用于实际环境问题判断"
+        ],
+        "suggested_department": ""
+      },
+      "error": null,
+      "persisted_after_get": true
+    },
+    {
+      "kind": "report",
+      "fixture": "taibai.png",
+      "sha256": "ac68527573ba71e7a7be34598024593d28cf063db723922f70bdf31c90103864",
+      "status": "succeeded",
+      "model": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+      "started_at": "2026-10-03T04:48:03.575038+00:00",
+      "finished_at": "2026-10-03T04:48:13.131478+00:00",
+      "elapsed_ms": 9578,
+      "result": {
+        "title": "雪山云海景观",
+        "summary": "图中可见雪山、云海和岩石，未见明显景区环境问题。",
+        "category": "no_obvious_issue",
+        "visible_observations": [
+          "雪山",
+          "云海",
+          "岩石",
+          "植被",
+          "积雪"
+        ],
+        "missing_information": [],
+        "follow_up_questions": [],
+        "recommendations": [
+          "图片为AI生成意境图，非真实现场拍摄，无法确认实际环境状况。"
+        ],
+        "suggested_department": ""
+      },
+      "error": null,
+      "persisted_after_get": true
+    },
+    {
+      "kind": "resolution",
+      "fixture": "taibai.png -> SAME taibai.png",
+      "status": "succeeded",
+      "model": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+      "started_at": "2026-10-03T04:48:13.375305+00:00",
+      "finished_at": "2026-10-03T04:48:22.943782+00:00",
+      "elapsed_ms": 9609,
+      "result": {
+        "visible_changes": [],
+        "remaining_issues": [],
+        "uncertainties": [
+          "视角不同",
+          "光线不同",
+          "画面不清",
+          "位置不一致"
+        ],
+        "acceptance_recommendation": "两张图片均为AI生成的山景图，视角、光线和画面细节存在明显差异，无法确认是否为同一场景的整改前后对比。"
+      },
+      "error": null,
+      "persisted_after_get": true
+    }
+  ],
+  "passed": true,
+  "browser_verified": true,
+  "finished_at": "2026-10-03T04:48:25.648859+00:00",
+  "upstream_calls": [
+    {
+      "ts": "2026-10-03T04:48:03.333678+00:00",
+      "op": "analyze_report",
+      "model": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+      "ok": true,
+      "latency_ms": 8750,
+      "attempt": 1,
+      "images": 1
+    },
+    {
+      "ts": "2026-10-03T04:48:13.127913+00:00",
+      "op": "analyze_report",
+      "model": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+      "ok": true,
+      "latency_ms": 9531,
+      "attempt": 1,
+      "images": 1
+    },
+    {
+      "ts": "2026-10-03T04:48:22.938234+00:00",
+      "op": "review_resolution",
+      "model": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+      "ok": true,
+      "latency_ms": 9531,
+      "attempt": 1,
+      "images": 2
+    }
+  ]
+}

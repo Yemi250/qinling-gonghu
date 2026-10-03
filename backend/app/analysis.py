@@ -92,7 +92,11 @@ async def analyze(event_id: str, body: AnalyzeRequest, request: Request):
         )
 
     config = AIConfig(
-        settings.ai_base_url, settings.ai_model, settings.ai_api_key, settings.ai_timeout_seconds
+        settings.ai_base_url,
+        settings.ai_model,
+        settings.ai_api_key,
+        settings.ai_timeout_seconds,
+        log_path=str(settings.data_dir / "ai_calls.jsonl"),
     )
     failure, result = None, None
     try:

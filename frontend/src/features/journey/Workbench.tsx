@@ -8,7 +8,7 @@ import {
 } from "../../api/client";
 import { AiEventCard } from "../visitor/AiEventCard";
 import { JourneyHeader, JourneyFooter } from "./Journey";
-import { dateLabel } from "./scenes";
+import { dateLabel, scenicName } from "./scenes";
 
 /** A real administrator workbench completes the visitor's environmental care flow. */
 export function Workbench() {
@@ -245,11 +245,7 @@ export function Workbench() {
                   <>
                     <AiEventCard
                       event={selected}
-                      pointName={
-                        selected.scenic_id === "terracotta-demo"
-                          ? "兵马俑示范区"
-                          : "秦岭示范区"
-                      }
+                      pointName={`${scenicName(selected.scenic_id)}示范区`}
                       onRetry={
                         ["needs_info", "pending_review"].includes(
                           selected.status,
@@ -378,7 +374,27 @@ export function Workbench() {
                             <h3>AI 整改对比意见</h3>
                             {a.result &&
                               "acceptance_recommendation" in a.result && (
-                                <p>{a.result.acceptance_recommendation}</p>
+                                <>
+                                  <p>{a.result.acceptance_recommendation}</p>
+                                  {[
+                                    ["可见变化", a.result.visible_changes],
+                                    ["仍需照看", a.result.remaining_issues],
+                                    ["还不确定", a.result.uncertainties],
+                                  ].map(
+                                    ([label, lines]) =>
+                                      Array.isArray(lines) &&
+                                      lines.length > 0 && (
+                                        <section key={label as string}>
+                                          <h4>{label}</h4>
+                                          <ul>
+                                            {lines.map((line) => (
+                                              <li key={line}>{line}</li>
+                                            ))}
+                                          </ul>
+                                        </section>
+                                      ),
+                                  )}
+                                </>
                               )}
                           </div>
                         ))}

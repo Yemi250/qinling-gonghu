@@ -19,6 +19,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 @contextmanager
 def server(data_dir, port, password):
+    """Start an isolated server and stop only its own process after HTTP verification."""
     env = {
         **os.environ,
         "DATA_DIR": str(data_dir),
@@ -48,7 +49,9 @@ def server(data_dir, port, password):
         creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
     )
     try:
-        with httpx.Client(base_url=f"http://127.0.0.1:{port}", timeout=10) as client:
+        with httpx.Client(
+            base_url=f"http://127.0.0.1:{port}", timeout=10, trust_env=False
+        ) as client:
             for _ in range(100):
                 if process.poll() is not None:
                     raise RuntimeError("Smoke server exited during startup")
@@ -71,86 +74,85 @@ def server(data_dir, port, password):
 
 
 def main():
+    """Verify upload, permissions and restart while preserving isolated test artifacts."""
     if not (ROOT / "frontend" / "dist" / "index.html").is_file():
         raise RuntimeError("Run npm --prefix frontend run build first")
-    temp_root = (ROOT / "temp").resolve()
-    temp_root.mkdir(exist_ok=True)
     with socket.socket() as sock:
         sock.bind(("127.0.0.1", 0))
         port = sock.getsockname()[1]
     password = secrets.token_urlsafe(24)
-    with tempfile.TemporaryDirectory(prefix="http-smoke-", dir=temp_root) as directory:
-        data_dir = Path(directory).resolve()
-        assert data_dir.is_relative_to(temp_root)
-        with server(data_dir, port, password) as client:
-            assert client.get("/api/health").json()["frontend_built"]
-            assert '<div id="root"></div>' in client.get("/").text
-            assert '<div id="root"></div>' in client.get("/visitor/example").text
-            assert client.get("/api/no-such-route").status_code == 404
-            image = BytesIO()
-            Image.new("RGB", (16, 16), "green").save(image, "PNG")
+    data_dir = Path(tempfile.mkdtemp(prefix="gonghu-http-smoke-")).resolve()
+    with server(data_dir, port, password) as client:
+        assert client.get("/api/health").json()["frontend_built"]
+        assert '<div id="root"></div>' in client.get("/").text
+        assert '<div id="root"></div>' in client.get("/visitor/example").text
+        assert client.get("/api/no-such-route").status_code == 404
+        image = BytesIO()
+        Image.new("RGB", (16, 16), "green").save(image, "PNG")
 
-            def upload():
-                response = client.post(
-                    "/api/uploads",
-                    files={"file": ("synthetic-demo.png", image.getvalue(), "image/png")},
-                )
-                response.raise_for_status()
-                return response.json()
-
-            created = client.post(
-                "/api/events",
-                json={
-                    "scenic_id": "qinling-demo",
-                    "point_id": "trail-entrance",
-                    "description": "HTTP 自动验收的合成演示材料",
-                    "original_images": [upload()],
-                    "is_demo": True,
-                },
+        def upload():
+            """Upload a clearly synthetic image through the actual HTTP endpoint."""
+            response = client.post(
+                "/api/uploads",
+                files={"file": ("synthetic-demo.png", image.getvalue(), "image/png")},
             )
-            created.raise_for_status()
-            event = created.json()["event"]
-            path = f"/api/events/{event['id']}"
-            visitor = {"X-Visitor-Token": created.json()["query_token"]}
-            failed = client.post(path + "/analysis", headers=visitor, json={"kind": "report"})
-            assert failed.status_code in {200, 502, 503, 504}
-            assert client.get(path, headers=visitor).status_code == 200
-            login = client.post("/api/auth/login", json={"username": "admin", "password": password})
-            login.raise_for_status()
-            manager = {"Authorization": f"Bearer {login.json()['access_token']}"}
-            assert (
-                client.post(
-                    path + "/actions",
-                    headers=visitor,
-                    json={"action": "assign", "assignee": "越权测试"},
-                ).status_code
-                == 401
-            )
-            current = client.get(path, headers=visitor).json()
-            if current["status"] == "needs_info":
-                client.post(
-                    path + "/actions",
-                    headers=visitor,
-                    json={"action": "supplement", "description": "合成图片，仅用于接口验收"},
-                ).raise_for_status()
-            for action in [
-                {"action": "assign", "assignee": "演示清理组"},
-                {
-                    "action": "submit_resolution",
-                    "note": "演示整改",
-                    "resolution_images": [upload()],
-                },
-                {"action": "close", "note": "人工验收通过（合成演示）"},
-            ]:
-                client.post(path + "/actions", headers=manager, json=action).raise_for_status()
-            assert client.get("/api/overview").json()["closed_count"] == 1
+            response.raise_for_status()
+            return response.json()
 
-        with server(data_dir, port, password) as client:
-            saved = client.get(path, headers=visitor).json()
-            assert saved["status"] == "closed"
-            for picture in saved["original_images"] + saved["resolution_images"]:
-                assert client.get(picture["url"]).headers["content-type"] == "image/jpeg"
-            assert client.get("/api/overview").json()["total"] == 1
+        created = client.post(
+            "/api/events",
+            json={
+                "scenic_id": "qinling-demo",
+                "point_id": "trail-entrance",
+                "description": "HTTP 自动验收的合成演示材料",
+                "original_images": [upload()],
+                "is_demo": True,
+            },
+        )
+        created.raise_for_status()
+        event = created.json()["event"]
+        path = f"/api/events/{event['id']}"
+        visitor = {"X-Visitor-Token": created.json()["query_token"]}
+        failed = client.post(path + "/analysis", headers=visitor, json={"kind": "report"})
+        assert failed.status_code in {200, 502, 503, 504}
+        assert client.get(path, headers=visitor).status_code == 200
+        login = client.post("/api/auth/login", json={"username": "admin", "password": password})
+        login.raise_for_status()
+        manager = {"Authorization": f"Bearer {login.json()['access_token']}"}
+        assert (
+            client.post(
+                path + "/actions",
+                headers=visitor,
+                json={"action": "assign", "assignee": "越权测试"},
+            ).status_code
+            == 401
+        )
+        current = client.get(path, headers=visitor).json()
+        if current["status"] == "needs_info":
+            client.post(
+                path + "/actions",
+                headers=visitor,
+                json={"action": "supplement", "description": "合成图片，仅用于接口验收"},
+            ).raise_for_status()
+        for action in [
+            {"action": "assign", "assignee": "演示清理组"},
+            {
+                "action": "submit_resolution",
+                "note": "演示整改",
+                "resolution_images": [upload()],
+            },
+            {"action": "close", "note": "人工验收通过（合成演示）"},
+        ]:
+            client.post(path + "/actions", headers=manager, json=action).raise_for_status()
+        assert client.get("/api/overview").json()["closed_count"] == 1
+
+    with server(data_dir, port, password) as client:
+        saved = client.get(path, headers=visitor).json()
+        assert saved["status"] == "closed"
+        for picture in saved["original_images"] + saved["resolution_images"]:
+            assert client.get(picture["url"]).headers["content-type"] == "image/jpeg"
+        assert client.get("/api/overview").json()["total"] == 1
+    print(f"Evidence retained: {data_dir}")
     print(
         "PASS: real HTTP upload, permissions, lifecycle, SPA, process restart and image persistence"
     )

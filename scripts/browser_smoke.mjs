@@ -253,6 +253,236 @@ try {
     .locator(".care-timeline h2")
     .filter({ hasText: "已结案" })
     .waitFor();
+  const chapters = [
+    {
+      slug: "terracotta",
+      name: "兵马俑",
+      id: "terracotta-demo",
+      point: "terracotta-rest",
+      image: "terracotta.png",
+    },
+    {
+      slug: "taibai",
+      name: "太白山",
+      id: "qinling-demo",
+      point: "rest-area",
+      image: "taibai.png",
+    },
+    {
+      slug: "huashan",
+      name: "华山",
+      id: "huashan-demo",
+      point: "huashan-rest",
+      image: "huashan-v1.png",
+    },
+    {
+      slug: "baotashan",
+      name: "宝塔山",
+      id: "baotashan-demo",
+      point: "baotashan-rest",
+      image: "baotashan-v1.png",
+    },
+    {
+      slug: "hanzhong",
+      name: "汉中油菜花海",
+      id: "hanzhong-demo",
+      point: "hanzhong-rest",
+      image: "hanzhong-v1.png",
+    },
+    {
+      slug: "zhenbeitai",
+      name: "镇北台",
+      id: "zhenbeitai-demo",
+      point: "zhenbeitai-rest",
+      image: "zhenbeitai-v1.png",
+    },
+  ];
+  for (const chapter of chapters) {
+    await page.goto(origin, { waitUntil: "networkidle" });
+    await page.getByRole("button", { name: "寻找一处风景" }).click();
+    await page.getByRole("searchbox").fill(chapter.name);
+    const searchResult = page.locator(".destination-search>a");
+    assert.equal(await searchResult.count(), 1);
+    await searchResult.click();
+    await page.waitForURL(`**/#/scenic/${chapter.slug}`);
+    await page
+      .locator(".scene-location")
+      .filter({ hasText: chapter.name })
+      .waitFor();
+    const activeNav = page.locator(".journey-header nav a.active");
+    assert.equal(
+      await activeNav.textContent(),
+      chapter.slug === "taibai" ? "秦岭专栏" : "陕西漫游",
+    );
+    await page.getByRole("link", { name: "回到山河地图" }).click();
+    const landmark = page.getByRole("link", {
+      name: `进入${chapter.name}`,
+      exact: true,
+    });
+    await landmark.locator(".landmark-name").hover();
+    await page
+      .getByRole("complementary", {
+        name: `${chapter.name}目的地`,
+        exact: true,
+      })
+      .waitFor();
+    await page.mouse.move(25, 200);
+    await page
+      .getByRole("complementary", { name: "兵马俑目的地", exact: true })
+      .waitFor();
+    await landmark.locator(".landmark-name").click();
+    await page.waitForURL(`**/#/scenic/${chapter.slug}`);
+    // Exercise both real upload/save flows for every scenic chapter.
+    await page.getByRole("button", { name: "留住这一刻" }).click();
+    await page
+      .locator("#journal-photo")
+      .setInputFiles(join(root, "frontend/public/assets", chapter.image));
+    await page
+      .getByRole("textbox", { name: "写一句旅途心情" })
+      .fill(`六景区验收：${chapter.name}`);
+    const previousCount = (await json(await fetch(`${origin}/api/overview`)))
+      .total;
+    await page.getByRole("button", { name: "收好这一刻" }).click();
+    await page.waitForURL("**/#/memory/*");
+    await page.reload();
+    await page.locator(".memory-postcard").waitFor();
+    assert.equal(
+      (await json(await fetch(`${origin}/api/overview`))).total,
+      previousCount,
+    );
+    await page.goto(`${origin}/#/scenic/${chapter.slug}`);
+    await page.getByRole("button", { name: "一起照看这里" }).click();
+    const select = page.locator("select");
+    await select.locator("option").nth(1).waitFor({ state: "attached" });
+    assert.equal(await select.locator("option").count(), 2);
+    await select.selectOption(chapter.point);
+    await page
+      .locator("#journal-photo")
+      .setInputFiles(join(root, "frontend/public/assets", chapter.image));
+    await page
+      .getByRole("textbox", { name: "说说你看见了什么" })
+      .fill(`六景区共护验收：${chapter.name}`);
+    await page.getByRole("button", { name: "让这份善意有回音" }).click();
+    await page.waitForURL("**/#/care/*");
+    await page.getByRole("button", { name: "重新分析" }).waitFor();
+    const current = await page.evaluate(
+      () => JSON.parse(localStorage.getItem("gonghu.journey.receipts.v1"))[0],
+    );
+    const persisted = await json(
+      await fetch(`${origin}/api/events/${current.id}`, {
+        headers: { "X-Visitor-Token": current.token },
+      }),
+    );
+    assert.equal(persisted.scenic_id, chapter.id);
+    assert.equal(persisted.point_id, chapter.point);
+    assert.equal(persisted.ai_status.report, "failed");
+    await page.reload();
+    await page.locator(".care-timeline").waitFor();
+    await admin.getByRole("button", { name: "刷新", exact: true }).click();
+    await admin
+      .locator(".workbench-list>button")
+      .filter({ hasText: `六景区共护验收：${chapter.name}` })
+      .click();
+    assert.ok(
+      (await admin.locator(".record").textContent()).includes(
+        `${chapter.name}示范区`,
+      ),
+    );
+    await recovered.goto(`${origin}/#/care/recover`);
+    await recovered.getByLabel("完整记录编号").fill(current.id);
+    await recovered.getByLabel("私密访问凭证").fill(current.token);
+    await recovered.getByRole("button", { name: "翻开这一页" }).click();
+    await recovered.locator(".care-timeline").waitFor();
+    const recoveredReceipt = await recovered.evaluate(
+      () => JSON.parse(localStorage.getItem("gonghu.journey.receipts.v1"))[0],
+    );
+    assert.equal(recoveredReceipt.scenic, chapter.name);
+  }
+  const layouts = await context.newPage();
+  layouts.on("pageerror", (e) => errors.push(e.message));
+  for (const width of [2048, 1440, 768, 390, 320]) {
+    await layouts.setViewportSize({
+      width,
+      height: width >= 1440 ? 1064 : 900,
+    });
+    let baseline;
+    for (const slug of [null, ...chapters.map((c) => c.slug)]) {
+      await layouts.goto(slug ? `${origin}/#/scenic/${slug}` : origin, {
+        waitUntil: "networkidle",
+      });
+      await layouts.evaluate(() => document.fonts.ready);
+      const geometry = await layouts.evaluate(() => {
+        const header = document.querySelector(".journey-header");
+        const brand = document.querySelector(".journey-brand");
+        const heading = document.querySelector("h1");
+        return {
+          height: header.getBoundingClientRect().height,
+          brandSize: getComputedStyle(brand).fontSize,
+          navSize: getComputedStyle(
+            document.querySelector(".journey-header nav"),
+          ).fontSize,
+          headingSize: getComputedStyle(heading).fontSize,
+          overflow: document.documentElement.scrollWidth > innerWidth,
+        };
+      });
+      assert.equal(geometry.overflow, false, `${width} ${slug} overflow`);
+      baseline ||= geometry;
+      assert.deepEqual(
+        geometry,
+        baseline,
+        `${width} ${slug} inconsistent header/title scale`,
+      );
+      if (slug) {
+        assert.equal(
+          await layouts.locator(".scene-eyebrow,.scene-coordinates").count(),
+          0,
+        );
+        assert.ok(
+          (await layouts.locator(".scene-location").textContent()).includes(
+            chapters.find((c) => c.slug === slug).name,
+          ),
+        );
+      } else {
+        await layouts.getByRole("button", { name: "寻找一处风景" }).click();
+        assert.equal(await layouts.locator(".destination-search>a").count(), 6);
+        await layouts.keyboard.press("Escape");
+        // Sample each visible artwork and label to catch transparent hotspot overlap.
+        const hits = await layouts.locator(".landmark a").evaluateAll((links) =>
+          links.map((a) => {
+            const label = a
+              .querySelector(".landmark-name")
+              .getBoundingClientRect();
+            const image = a.querySelector("img").getBoundingClientRect();
+            return {
+              name: a.getAttribute("aria-label"),
+              label: document
+                .elementFromPoint(
+                  label.x + label.width / 2,
+                  label.y + label.height / 2,
+                )
+                ?.closest("a")
+                ?.getAttribute("aria-label"),
+              art: document
+                .elementFromPoint(
+                  image.x + image.width / 2,
+                  image.y + image.height * 0.4,
+                )
+                ?.closest("a")
+                ?.getAttribute("aria-label"),
+            };
+          }),
+        );
+        for (const hit of hits) {
+          assert.equal(hit.label, hit.name, `${width} label blocked`);
+          assert.equal(hit.art, hit.name, `${width} art blocked`);
+        }
+      }
+      await layouts.screenshot({
+        path: join(evidence, `layout-${width}-${slug || "atlas"}.png`),
+        fullPage: true,
+      });
+    }
+  }
   const mobile = await context.newPage();
   await mobile.setViewportSize({ width: 390, height: 844 });
   await mobile.goto(origin, { waitUntil: "networkidle" });
@@ -284,7 +514,7 @@ try {
   );
   console.log(`Evidence: ${evidence}`);
   console.log(
-    "AI success is covered separately by provider-contract unit tests; this browser run deliberately has no API key.",
+    "This browser run deliberately has no API key. Real model acceptance runs separately with scripts.live_ai_smoke.",
   );
 } finally {
   await browser?.close();

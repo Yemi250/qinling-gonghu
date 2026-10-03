@@ -9,7 +9,13 @@ import {
 } from "../../api/client";
 import { AiEventCard } from "../visitor/AiEventCard";
 import { JourneyHeader, JourneyFooter } from "./Journey";
-import { readReceipts, dateLabel, saveReceipt, type Receipt } from "./scenes";
+import {
+  readReceipts,
+  dateLabel,
+  saveReceipt,
+  scenicName,
+  type Receipt,
+} from "./scenes";
 
 /** Look up scoped credentials without embedding secrets in URLs. */
 function useReceipt(kind: "memory" | "care") {
@@ -305,7 +311,7 @@ function Recover({
         id: identifier,
         token,
         kind,
-        scenic: v.scenic_id === "terracotta-demo" ? "兵马俑" : "太白山",
+        scenic: scenicName(v.scenic_id),
         title: v.description || "我的旅途记录",
         image: image.url,
         date: v.created_at,

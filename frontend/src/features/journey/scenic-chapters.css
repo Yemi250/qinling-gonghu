@@ -1,4 +1,48 @@
 /* Scenic chapters inherit the atlas frame, header and typography scale. */
+.scene--stone {
+  --paper: #f2f0e9;
+  --paper-2: #e7e4dc;
+  --ink: #423e36;
+  --ink-2: #777364;
+  --pine: #746c5d;
+  --teal: #aaa18d;
+}
+.scene--loess {
+  --paper: #f4eee4;
+  --paper-2: #e9dfd0;
+  --ink: #4e3e30;
+  --ink-2: #85715d;
+  --pine: #92775c;
+  --teal: #b39a7f;
+}
+.scene--field {
+  --paper: #f5f2e7;
+  --paper-2: #e9e5d5;
+  --ink: #4a4935;
+  --ink-2: #7e8063;
+  --pine: #888269;
+  --teal: #b2ab87;
+}
+.scene--sand {
+  --paper: #f2ecdf;
+  --paper-2: #e6dccb;
+  --ink: #4b4032;
+  --ink-2: #84755f;
+  --pine: #927e60;
+  --teal: #b7a48a;
+}
+.scene-page .scene-hero:before {
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--paper) 90%, transparent),
+    color-mix(in srgb, var(--paper) 70%, transparent) 25%,
+    color-mix(in srgb, var(--paper) 15%, transparent) 52%,
+    transparent 76%
+  );
+}
+.scene-page .scene-bottom-fade {
+  background: linear-gradient(transparent, var(--paper));
+}
 .scene-page.journey-framed {
   min-height: 100svh;
 }
@@ -11,6 +55,10 @@
   height: calc(max(100svh, 660px) - 96px);
   min-height: 564px;
   max-height: none;
+}
+.scene-page.scene--stone .scene-hero,
+.scene-page.scene--sand .scene-hero {
+  background-position: 75% center;
 }
 .scene-page .scene-back {
   left: var(--journey-content-inset);
@@ -106,6 +154,15 @@
   }
   .scene-page.scene--clay .scene-hero {
     background-position: 68% center;
+  }
+  .scene-page.scene--stone .scene-hero {
+    background-position: 95% center;
+  }
+  .scene-page.scene--loess .scene-hero {
+    background-position: 85% center;
+  }
+  .scene-page.scene--sand .scene-hero {
+    background-position: 90% center;
   }
   .scene-page .scene-story {
     width: 88%;

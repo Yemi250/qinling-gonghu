@@ -49,6 +49,24 @@ POINTS = [
         "label": "示范点位（非真实运营接入）",
     },
 ]
+# Keep legacy point IDs stable while adding the four new scenic chapters.
+for scenic_slug, scenic_name in (
+    ("huashan", "华山"),
+    ("baotashan", "宝塔山"),
+    ("hanzhong", "汉中油菜花海"),
+    ("zhenbeitai", "镇北台"),
+):
+    POINTS.extend(
+        {
+            "id": f"{scenic_slug}-{suffix}",
+            "scenic_id": f"{scenic_slug}-demo",
+            "name": f"{scenic_name}示范区·{name}",
+            "availability": "demo",
+            "label": "示范点位（非真实运营接入）",
+        }
+        for suffix, name in (("entry", "参观入口"), ("rest", "休息区"))
+    )
+
 TRANSITIONS = {
     "request_info": ({"pending_review"}, "needs_info"),
     "supplement": ({"needs_info"}, "pending_review"),

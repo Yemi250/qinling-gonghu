@@ -56,7 +56,8 @@ export function JourneyHeader({ immersive = false }: { immersive?: boolean }) {
           to="/"
           end
           className={
-            pathname === "/" || pathname === "/scenic/terracotta"
+            pathname === "/" ||
+            (pathname.startsWith("/scenic/") && pathname !== "/scenic/taibai")
               ? "active"
               : ""
           }
@@ -125,7 +126,7 @@ export function JourneyHeader({ immersive = false }: { immersive?: boolean }) {
             ))}
           {!Object.values(SCENES).some((s) =>
             (s.name + s.city).includes(search.trim()),
-          ) && <p>这个目的地还在筹备中，先去兵马俑或太白山走走吧。</p>}
+          ) && <p>暂时没有找到这处风景，试试景区名或城市名。</p>}
         </section>
       )}
     </header>

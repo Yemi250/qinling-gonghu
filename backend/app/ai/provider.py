@@ -48,7 +48,7 @@ def _cfg(config: Any, op: str) -> CoreConfig:
         model=config.model,
         timeout_s=float(config.timeout_seconds),
         max_retries=1,
-        log_path="data/ai_calls.jsonl",
+        log_path=getattr(config, "log_path", "data/ai_calls.jsonl"),
     )
 
 

@@ -2274,7 +2274,11 @@
             "type": "string",
             "enum": [
               "terracotta-demo",
-              "qinling-demo"
+              "qinling-demo",
+              "huashan-demo",
+              "baotashan-demo",
+              "hanzhong-demo",
+              "zhenbeitai-demo"
             ],
             "title": "Scenic Id"
           },

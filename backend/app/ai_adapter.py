@@ -14,6 +14,7 @@ class AIConfig:
     model: str
     api_key: str = field(repr=False)
     timeout_seconds: float
+    log_path: str = "data/ai_calls.jsonl"
 
 
 class ModuleAI:

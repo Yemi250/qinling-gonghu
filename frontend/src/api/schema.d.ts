@@ -322,7 +322,7 @@ export interface components {
              * Scenic Id
              * @enum {string}
              */
-            scenic_id: "terracotta-demo" | "qinling-demo";
+            scenic_id: "terracotta-demo" | "qinling-demo" | "huashan-demo" | "baotashan-demo" | "hanzhong-demo" | "zhenbeitai-demo";
             /**
              * Description
              * @default

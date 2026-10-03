@@ -266,28 +266,28 @@
 .journey-home .landmark-window {
   overflow: visible;
 }
-.journey-home .landmark[data-city="延安"] .landmark-name {
-  transform: translateX(68px);
-}
 .journey-home .landmark-inner {
-  padding-top: 26px;
+  padding-top: 18px;
   overflow: visible;
+  pointer-events: none;
 }
 .journey-home .landmark-inner a,
 .journey-home .landmark-inner button {
-  height: 220px;
+  height: 180px;
   justify-content: flex-end;
   overflow: visible;
+  pointer-events: none;
 }
 .journey-home .landmark-art {
-  width: 108px;
-  height: 147px;
-  min-height: 147px;
+  width: 130px;
+  height: 132px;
+  min-height: 132px;
   flex-shrink: 0;
+  pointer-events: auto;
 }
 .journey-home .landmark-art img {
-  width: 114px;
-  height: 168px;
+  width: 130px;
+  height: 132px;
   max-width: none;
   object-fit: contain;
   object-position: center bottom;
@@ -305,6 +305,7 @@
   display: none;
 }
 .journey-home .landmark-name {
+  pointer-events: auto;
   display: flex;
   align-items: center;
   gap: 8px;

@@ -1,67 +1,79 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router";
-import { ArrowRight, Mountain } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import { SCENES, type Scene } from "./scenes";
 
 type City = {
   properties: { name: string; center: number[] };
   geometry: { type: string; coordinates: number[][][][] | number[][][] };
 };
-type Place = {
-  name: string;
-  city: string;
-  location: number[];
-  slug?: string;
-  symbol: string;
-  description: string;
-};
-const PLACES: Place[] = [
-  {
-    name: "兵马俑",
-    city: "西安",
-    location: [109.27, 34.38],
-    slug: "terracotta",
-    symbol: "warrior",
-    description: "走近陶土里的千年，看见长安的另一种温度。",
-  },
-  {
-    name: "太白山",
-    city: "宝鸡",
-    location: [107.77, 33.96],
-    slug: "taibai",
-    symbol: "mountain",
-    description: "从关中平原出发，去听秦岭云海与山风的声音。",
-  },
-  {
-    name: "华山",
-    city: "渭南",
-    location: [110.08, 34.49],
-    symbol: "peak",
-    description: "险峰与云阶。这个目的地的互动篇章正在筹备。",
-  },
-  {
-    name: "宝塔山",
-    city: "延安",
-    location: [109.49, 36.59],
-    symbol: "pagoda",
-    description: "黄土与延河之间。这个目的地的互动篇章正在筹备。",
-  },
-  {
-    name: "汉中",
-    city: "汉中",
-    location: [107.03, 33.07],
-    symbol: "flower",
-    description: "山南的田野与花海。这个目的地的互动篇章正在筹备。",
-  },
-  {
-    name: "镇北台",
-    city: "榆林",
-    location: [109.74, 38.29],
-    symbol: "tower",
-    description: "长城遇见大漠。这个目的地的互动篇章正在筹备。",
-  },
-];
+type Place = Scene;
+const PLACES: Place[] = Object.values(SCENES);
+/** Offset only the artwork, preserving the geographic province outline. */
+function landmarkPosition(place: Place): number[] {
+  const [x, y] = project(place.location);
+  return [x + place.mapOffset[0], y + place.mapOffset[1]];
+}
+/** Place the preview beside the artwork without covering another landmark or label. */
+function previewPosition(place: Place): number[] {
+  const [x, y] = landmarkPosition(place);
+  const blocked = PLACES.map((p) => {
+    const [px, py] = landmarkPosition(p);
+    return [px - 72, py - 172, px + 72, py + 38];
+  });
+  const candidates = [
+    [82, -110],
+    [-305, -110],
+    [82, -280],
+    [-305, -280],
+    [82, 48],
+    [-110, 48],
+    [-110, -280],
+  ];
+  const options = candidates.map(([dx, dy]) => [
+    Math.max(15, Math.min(x + dx, 915)),
+    Math.max(25, Math.min(y + dy, 670)),
+  ]);
+  return (
+    options.find(
+      ([cx, cy]) =>
+        !blocked.some(
+          ([left, top, right, bottom]) =>
+            cx < right && cx + 218 > left && cy < bottom && cy + 95 > top,
+        ),
+    ) || options[0]
+  );
+}
+/** Keep secondary city labels clear of the landmark illustrations. */
+function cityLabelPosition(city: City): number[] {
+  const [x, y] = project(city.properties.center);
+  const candidates = [
+    [0, 0],
+    [-65, 0],
+    [65, 0],
+    [0, 50],
+    [0, -50],
+    [-65, 50],
+    [65, 50],
+  ];
+  return (
+    candidates
+      .map(([dx, dy]) => [x + dx, y + dy])
+      .find(([cx, cy]) =>
+        PLACES.every((place) => {
+          const [px, py] = landmarkPosition(place);
+          return (
+            cx + 35 < px - 72 ||
+            cx - 35 > px + 72 ||
+            cy + 15 < py - 172 ||
+            cy - 20 > py + 38
+          );
+        }),
+      ) || [x, y]
+  );
+}
 /** Project real municipal geometry into a compact illustrated atlas. */
-function project(p: number[]): number[] {
+function project(p: readonly number[]): number[] {
   return [
     ((p[0] - 105.45) * 100 + 60) * 1.6 + 50,
     ((39.65 - p[1]) * 90 + 20) * 0.91 + 40,
@@ -95,7 +107,7 @@ export function Atlas() {
   const [active, setActive] = useState(PLACES[0]);
   const [failed, setFailed] = useState(false);
   const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [noteX, noteY] = project(active.location);
+  const [noteX, noteY] = previewPosition(active);
   /** Keep the preview available while crossing from its landmark to the card. */
   function keepPreview(place?: Place) {
     if (resetTimer.current !== null) clearTimeout(resetTimer.current);
@@ -192,7 +204,7 @@ export function Atlas() {
                 ].includes(c.properties.name),
             )
             .map((c) => {
-              const [x, y] = project(c.properties.center);
+              const [x, y] = cityLabelPosition(c);
               return (
                 <g key={c.properties.name} transform={`translate(${x} ${y})`}>
                   <rect
@@ -212,7 +224,7 @@ export function Atlas() {
           {[...PLACES]
             .sort((a, b) => b.location[1] - a.location[1])
             .map((p) => {
-              const [x, y] = project(p.location);
+              const [x, y] = landmarkPosition(p);
               return (
                 <g
                   key={p.name}
@@ -229,27 +241,18 @@ export function Atlas() {
                 >
                   <foreignObject
                     x="-70"
-                    y="-188"
+                    y="-170"
                     width="140"
-                    height="245"
+                    height="212"
                     className="landmark-window"
                   >
                     <div className="landmark-inner">
-                      {p.slug ? (
-                        <Link
-                          to={`/scenic/${p.slug}`}
-                          aria-label={`进入${p.name}`}
-                        >
-                          <Landmark place={p} />
-                        </Link>
-                      ) : (
-                        <button
-                          onClick={() => keepPreview(p)}
-                          aria-label={`了解${p.name}`}
-                        >
-                          <Landmark place={p} />
-                        </button>
-                      )}
+                      <Link
+                        to={`/scenic/${p.slug}`}
+                        aria-label={`进入${p.name}`}
+                      >
+                        <Landmark place={p} />
+                      </Link>
                     </div>
                   </foreignObject>
                 </g>
@@ -257,8 +260,8 @@ export function Atlas() {
             })}
           <foreignObject
             className="atlas-callout"
-            x={Math.min(noteX + 53, 915)}
-            y={noteY < 230 ? noteY + 40 : noteY - 168}
+            x={noteX}
+            y={noteY}
             width="235"
             height="145"
             onMouseEnter={() => keepPreview()}
@@ -275,24 +278,20 @@ export function Atlas() {
               aria-label={`${active.name}目的地`}
             >
               <h2>{active.name}</h2>
-              {active.slug ? (
-                <Link to={`/scenic/${active.slug}`}>
-                  走进这处风景 <ArrowRight size={19} />
-                </Link>
-              ) : (
-                <>
-                  <p>{active.description}</p>
-                  <span className="planned-label">互动篇章 · 筹备中</span>
-                </>
-              )}
+              <Link to={`/scenic/${active.slug}`}>
+                走进这处风景 <ArrowRight size={19} />
+              </Link>
             </aside>
           </foreignObject>
         </svg>
         {failed && (
           <div className="atlas-load-error" role="alert">
             <p>地图暂时未加载，仍可直接开启景区篇章。</p>
-            <Link to="/scenic/terracotta">兵马俑 ↗</Link>
-            <Link to="/scenic/taibai">太白山 ↗</Link>
+            {PLACES.map((place) => (
+              <Link key={place.slug} to={`/scenic/${place.slug}`}>
+                {place.name} ↗
+              </Link>
+            ))}
           </div>
         )}
       </div>
@@ -302,25 +301,8 @@ export function Atlas() {
 function Landmark({ place: p }: { place: Place }) {
   return (
     <>
-      <span className={`landmark-art landmark-art--${p.symbol}`}>
-        {p.symbol === "warrior" ? (
-          <img src="assets/warrior.png" alt="" />
-        ) : p.symbol === "mountain" || p.symbol === "peak" ? (
-          <Mountain size={p.symbol === "peak" ? 48 : 62} strokeWidth={1.2} />
-        ) : p.symbol === "flower" ? (
-          <span>✿</span>
-        ) : (
-          <svg viewBox="0 0 70 80" aria-hidden="true">
-            <path
-              d={
-                p.symbol === "pagoda"
-                  ? "M35 4 L16 22 L25 22 L25 31 L10 43 L23 43 L23 54 L5 68 L27 68 L27 77 L44 77 L44 68 L65 68 L48 54 L48 43 L61 43 L45 31 L45 22 L54 22 Z"
-                  : "M8 28 H17 V17 H27 V28 H43 V17 H53 V28 H62 V76 H8 Z"
-              }
-              fill="currentColor"
-            />
-          </svg>
-        )}
+      <span className={`landmark-art landmark-art--${p.slug}`}>
+        <img src={`assets/${p.landmarkImage}`} alt="" />
       </span>
       <span className="landmark-pin" />
       <span className="landmark-name">
